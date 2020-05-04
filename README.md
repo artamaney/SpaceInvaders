@@ -5,7 +5,7 @@ Developer Rogov Artemy (artemiyrogov1@gmail.com)
 
 ## Description
 
-This app is an implementation of the game SPACE INVADERS with with acceleration of free fall and the player is in some type of "pit".
+This app is an implementation of the game SPACE INVADERS with acceleration of free fall and the player is in some type of "pit".
 
 ## Requirements
 
