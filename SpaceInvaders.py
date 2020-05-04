@@ -60,11 +60,14 @@ class MainWindow(QtWidgets.QWidget):
         for bunker in self.bunkers:
             self.print_bunker(painter, bunker)
         for bullet in self.bullets:
-            self.print_bullet(painter, bullet)
+            self.print_our_bullet(painter, bullet)
         for invader in self.invaders:
             self.print_invaders(painter, invader)
         for bullet in self.bullets_invader:
-            self.print_bullet(painter, bullet)
+            self.print_invader_bullet(painter, bullet)
+        for invader in self.invaders:
+            self.print_lives(painter, invader)
+        self.print_cart_lives(painter, self.cart)
         if self.game_over():
             self.game_is_over = True
             self.print_game_over(painter)
@@ -112,6 +115,26 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_cart, img)
 
     @staticmethod
+    def print_lives(painter, invader):
+        rect_lives = QtCore.QRect(invader.x_left + 5,
+                                  invader.y_top + invader.height,
+                                  60, 5)
+        full_value = Values.lives[invader.level - 1]
+        rect_our_lives = QtCore.QRect(invader.x_left + 5,
+                                      invader.y_top + invader.height,
+                                      int(invader.lives * 60 / full_value),
+                                      5)
+        painter.drawImage(rect_lives, Images.live_line)
+        painter.drawImage(rect_our_lives, Images.line_full)
+
+    @staticmethod
+    def print_cart_lives(painter, cart):
+        rect_lives = QtCore.QRect(900, 750, 160, 60)
+        rect_our_lives = QtCore.QRect(900, 750, int(cart.lives * 160 / 3), 60)
+        painter.drawImage(rect_lives, Images.live_line)
+        painter.drawImage(rect_our_lives, Images.line_full)
+
+    @staticmethod
     def print_bunker(painter, bunker):
         rect_bunker = QtCore.QRect(bunker.x_left, bunker.y_top,
                                    bunker.width, bunker.height)
@@ -135,10 +158,18 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_invader, img)
 
     @staticmethod
-    def print_bullet(painter, bullet):
+    def print_our_bullet(painter, bullet):
         rect_bullet = QtCore.QRect(bullet.x_left, bullet.y_top,
                                    Values.BULLET_RADIUS, Values.BULLET_RADIUS)
-        painter.drawImage(rect_bullet, Images.BULLET)
+        painter.drawImage(rect_bullet, Images.OUR_BULLET)
+
+    @staticmethod
+    def print_invader_bullet(painter, bullet):
+        rect_bullet = QtCore.QRect(bullet.x_left, bullet.y_top,
+                                   Values.BULLET_RADIUS, Values.BULLET_RADIUS)
+        level = bullet.invader.level
+        img = Images.BULLET[level - 1]
+        painter.drawImage(rect_bullet, img)
 
     @staticmethod
     def print_game_over(painter):
@@ -163,8 +194,8 @@ class MainWindow(QtWidgets.QWidget):
             bullet = Enemies.Invader_Bullet(invader.x_left, invader.y_top,
                                             Values.BULLET_RADIUS,
                                             Values.BULLET_RADIUS,
-                                            self.cart, 1,
-                                            invader.lives, Values.current_type)
+                                            self.cart, 1, invader.lives,
+                                            Values.current_type, invader)
             self.bullets_invader.append(bullet)
 
     def invader_fire(self):
@@ -204,8 +235,8 @@ class MainWindow(QtWidgets.QWidget):
                         Values.CAN_MOVE_DOWN = self.flag
 
     def intersection_bullet_invader(self):
-        for bullet in self.bullets:
-            for invader in self.invaders:
+        for invader in self.invaders:
+            for bullet in self.bullets:
                 if self.rectangles_intersected(bullet, invader):
                     self.score += 50
                     invader.lives -= 1

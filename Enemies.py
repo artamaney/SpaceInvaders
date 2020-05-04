@@ -97,7 +97,8 @@ class Cart_Bullet:
 
 
 class Invader_Bullet:
-    def __init__(self, x, y, width, height, cart, velocity, damage, type):
+    def __init__(self, x, y, width, height, cart,
+                 velocity, damage, type, invader):
         self.x_left = x
         self.y_top = y
         self.width = width
@@ -106,6 +107,7 @@ class Invader_Bullet:
         self.x1 = cart.x_left
         self.y1 = cart.y_top
         self.type = type
+        self.invader = invader
         if type is Values.AIM_CART:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
