@@ -11,6 +11,7 @@ import Images
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+        self.pause_mode = False
         self.count = 0
         self.game_is_over = False
         self.flag = True
@@ -21,25 +22,35 @@ class MainWindow(QtWidgets.QWidget):
         self.height = Values.WINDOW_HEIGHT
         self.invaders = self.init_invaders()
         self.bullets = []
-        self.bullets_invader = []
+        self.bullets_inv = []
         self.cart = Enemies.Cart(50, 530, Values.CART_WIDTH,
                                  Values.CART_HEIGHT, Values.CART_WEIGHT, 3)
         self.bunkers = self.init_bunkers()
-        self.score = 0
+        self.score = Enemies.Score(0)
+        self.timer_update = QtCore.QTimer()
+        self.timer_update.timeout.connect(self.update)
+        self.timer_update.start(5)
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update)
         self.timer.timeout.connect(lambda: self.cart_fire())
         self.timer.timeout.connect(lambda: self.move_invaders())
         self.timer.timeout.connect(lambda: self.invader_fire())
+        self.timer.timeout.connect(lambda: self.cart.
+                                   intersect_cart(self.bullets_inv))
+        self.timer.timeout.connect(lambda: self.score.
+                                   intersect_cart(self.bullets_inv, self.cart))
+        self.timer.timeout.connect(lambda: self.score.
+                                   intersect_invader(self.bullets,
+                                                     self.invaders))
         self.timer.timeout.connect(lambda: self.intersection_bullet_invader())
         self.timer.timeout.connect(lambda: self.kill_bunker())
-        self.timer.timeout.connect(lambda: self.cart.move(Values.NOPE, 0.5))
+        self.timer.timeout.connect(lambda: self.cart.move(
+            Values.NOPE, int(not self.pause_mode) / 2))
         self.timer.start(5)
         self.timer2 = QtCore.QTimer()
         self.timer2.timeout.connect(lambda: self.invader_makes_bullets())
         self.timer2.start(Values.interval_for_invaders)
         self.timer3 = QtCore.QTimer()
-        self.timer3.timeout.connect(lambda: self.score_reduce())
+        self.timer3.timeout.connect(lambda: self.score.reduce())
         self.timer3.start(Values.interval_for_score)
         self.able_fire = False
         self.timer4 = QtCore.QTimer()
@@ -63,34 +74,48 @@ class MainWindow(QtWidgets.QWidget):
             self.print_our_bullet(painter, bullet)
         for invader in self.invaders:
             self.print_invaders(painter, invader)
-        for bullet in self.bullets_invader:
+        for bullet in self.bullets_inv:
             self.print_invader_bullet(painter, bullet)
         for invader in self.invaders:
             self.print_lives(painter, invader)
         self.print_cart_lives(painter, self.cart)
-        if self.game_over():
+        if self.cart.lives <= 0:
             self.game_is_over = True
             self.print_game_over(painter)
         self.print_score(painter)
+        self.print_pause(painter)
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == QtCore.Qt.Key_Right and not self.game_is_over:
-            self.cart.move(Values.RIGHT, 4)
-            self.cart.direction = Values.RIGHT
-        if key == QtCore.Qt.Key_Left and not self.game_is_over:
-            self.cart.move(Values.LEFT, 4)
+        if key == QtCore.Qt.Key_P:
+            self.pause_mode = not self.pause_mode
+            if self.pause_mode:
+                self.timer.stop()
+                self.timer2.stop()
+                self.timer3.stop()
+                self.timer4.stop()
+            else:
+                self.timer.start()
+                self.timer2.start()
+                self.timer3.start()
+                self.timer4.start()
+
+        if not (self.pause_mode or self.game_is_over):
+            if key == QtCore.Qt.Key_Right:
+                self.cart.move(Values.RIGHT, 4)
+                self.cart.direction = Values.RIGHT
+            if key == QtCore.Qt.Key_Left:
+                self.cart.move(Values.LEFT, 4)
             self.cart.direction = Values.LEFT
-        if key == QtCore.Qt.Key_Space and not self.game_is_over \
-                and self.able_fire:
-            bullet = Enemies.Cart_Bullet(self.cart.x_left,
-                                         self.cart.y_top + 2,
-                                         Values.BULLET_RADIUS,
-                                         Values.BULLET_RADIUS,
-                                         Values.BULLET_ANGLE)
-            self.bullets.append(bullet)
-            self.timer4.start(Values.interval_for_cart)
-            self.able_fire = False
+            if key == QtCore.Qt.Key_Space and self.able_fire:
+                bullet = Enemies.Cart_Bullet(self.cart.x_left,
+                                             self.cart.y_top + 2,
+                                             Values.BULLET_RADIUS,
+                                             Values.BULLET_RADIUS,
+                                             Values.BULLET_ANGLE)
+                self.bullets.append(bullet)
+                self.timer4.start(Values.interval_for_cart)
+                self.able_fire = False
 
     def able_to_fire(self):
         self.able_fire = True
@@ -113,6 +138,12 @@ class MainWindow(QtWidgets.QWidget):
             if self.cart.direction == Values.RIGHT:
                 img = Images.CARTRU
         painter.drawImage(rect_cart, img)
+
+    def print_pause(self, painter):
+        if self.pause_mode:
+            rect_pause = QtCore.QRect(Values.WINDOW_WIDTH // 2 - 200,
+                                      Values.WINDOW_HEIGHT // 2 - 200, 400, 200)
+            painter.drawImage(rect_pause, Images.PAUSE)
 
     @staticmethod
     def print_lives(painter, invader):
@@ -183,27 +214,29 @@ class MainWindow(QtWidgets.QWidget):
         self.setPalette(palette)
 
     def cart_fire(self):
-        for bullet in self.bullets:
-            bullet.move(3)
-            if bullet.y_top + bullet.height >= 850:
-                self.bullets.remove(bullet)
+        if not self.pause_mode:
+            for bullet in self.bullets:
+                bullet.move(3)
+                if bullet.y_top + bullet.height >= 850:
+                    self.bullets.remove(bullet)
 
     def invader_makes_bullets(self):
-        if not self.game_is_over and len(self.invaders) > 0:
+        if not self.game_is_over and len(self.invaders) > 0 and not \
+                self.pause_mode:
             invader = self.invaders[randint(0, len(self.invaders) - 1)]
             bullet = Enemies.Invader_Bullet(invader.x_left, invader.y_top,
                                             Values.BULLET_RADIUS,
                                             Values.BULLET_RADIUS,
                                             self.cart, 1, invader.lives,
                                             Values.current_type, invader)
-            self.bullets_invader.append(bullet)
+            self.bullets_inv.append(bullet)
 
     def invader_fire(self):
-        if not self.game_is_over:
-            for bullet in self.bullets_invader:
+        if not (self.game_is_over or self.pause_mode):
+            for bullet in self.bullets_inv:
                 bullet.move()
                 if bullet.y_top + bullet.height >= 800:
-                    self.bullets_invader.remove(bullet)
+                    self.bullets_inv.remove(bullet)
 
     def get_left_invader_x(self):
         return sorted(self.invaders,
@@ -214,7 +247,7 @@ class MainWindow(QtWidgets.QWidget):
                       key=lambda invad: invad.x_left, reverse=True)[0].x_left
 
     def move_invaders(self):
-        if not self.game_is_over:
+        if not (self.game_is_over or self.pause_mode):
             step = 0.1
             for invader in self.invaders:
                 if Values.CAN_MOVE_DOWN \
@@ -236,52 +269,20 @@ class MainWindow(QtWidgets.QWidget):
 
     def intersection_bullet_invader(self):
         for invader in self.invaders:
-            for bullet in self.bullets:
-                if self.rectangles_intersected(bullet, invader):
-                    self.score += 50
-                    invader.lives -= 1
-                    if invader.lives <= 0:
-                        self.invaders.remove(invader)
-                    self.bullets.remove(bullet)
+            invader.intersect_bullet(self.bullets, self.invaders)
 
     def game_over(self):
-        for bullet in self.bullets_invader:
-            if self.rectangles_intersected(bullet, self.cart):
-                self.score -= int(1000 * bullet.damage / self.cart.lives)
-                if self.score < 0:
-                    self.score = 0
-                self.cart.lives -= bullet.damage
-                self.bullets_invader.remove(bullet)
-                return self.cart.lives <= 0
-        return self.game_is_over
+        return self.cart.lives <= 0
 
     def kill_bunker(self):
-        for bullet in self.bullets_invader:
-            for bunker in self.bunkers:
-                if self.rectangles_intersected(bullet, bunker):
-                    bunker.lives -= 1
-                    bunker.height //= 2
-                    bunker.y_top += bullet.height
-                    self.bullets_invader.remove(bullet)
-                    if bunker.lives == 0:
-                        self.bunkers.remove(bunker)
-
-    def score_reduce(self):
-        if self.score > 0:
-            self.score -= 1
+        for bunker in self.bunkers:
+            bunker.bullet_intersection(self.bullets_inv, self.bunkers)
 
     def find_score(self):
         array = []
         for i in range(0, 5):
-            array.append(self.score / 10 ** i % 10)
+            array.append(self.score.score // 10 ** i % 10)
         return array
-
-    @staticmethod
-    def rectangles_intersected(r1, r2):
-        return not (r1.y_top > r2.y_top + r2.height or
-                    r2.y_top > r1.y_top + r1.height or
-                    r1.x_left + r1.width < r2.x_left or
-                    r2.x_left + r2.width < r1.x_left)
 
     @staticmethod
     def init_invaders():

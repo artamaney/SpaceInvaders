@@ -17,6 +17,14 @@ class Invader:
         self.height = height
         self.level = level
 
+    def intersect_bullet(self, bullets, invaders):
+        for bullet in bullets:
+            if rectangles_intersected(bullet, self):
+                self.lives -= 1
+                if self.lives <= 0:
+                    invaders.remove(self)
+                bullets.remove(bullet)
+
     def move_right(self, step):
         self.x_left += step
 
@@ -45,6 +53,12 @@ class Cart:
         self.height = height
         self.direction = 'LEFT'
         self.weight = weight
+
+    def intersect_cart(self, bullets_invader):
+        for bullet in bullets_invader:
+            if rectangles_intersected(bullet, self):
+                self.lives -= bullet.damage
+                bullets_invader.remove(bullet)
 
     def move(self, direction, step_width):
         x_middle = self.x_left + self.width / 2
@@ -136,3 +150,42 @@ class Bunker:
         self.width = width
         self.height = height
         self.lives = lives
+
+    def bullet_intersection(self, bullets, bunkers):
+        for bullet in bullets:
+            if rectangles_intersected(bullet, self):
+                self.lives -= 1
+                self.height //= 2
+                self.y_top += bullet.height
+                bullets.remove(bullet)
+                if self.lives == 0:
+                    bunkers.remove(self)
+
+
+class Score:
+    def __init__(self, score):
+        self.score = score
+
+    def reduce(self):
+        if self.score > 0:
+            self.score -= 1
+
+    def intersect_invader(self, bullets, invaders):
+        for invader in invaders:
+            for bullet in bullets:
+                if rectangles_intersected(bullet, invader):
+                    self.score += 50
+
+    def intersect_cart(self, bullets, cart):
+        for bullet in bullets:
+            if rectangles_intersected(bullet, cart):
+                self.score -= 1000 * bullet.damage // cart.lives
+                if self.score < 0:
+                    self.score = 0
+
+
+def rectangles_intersected(r1, r2):
+    return not (r1.y_top > r2.y_top + r2.height or
+                r2.y_top > r1.y_top + r1.height or
+                r1.x_left + r1.width < r2.x_left or
+                r2.x_left + r2.width < r1.x_left)

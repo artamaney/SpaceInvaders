@@ -3,4 +3,4 @@ mediumInvadersCount=10
 hardInvadersCount=11
 interval=2000
 type=1
-bunkersCount=5
+bunkersCount=3

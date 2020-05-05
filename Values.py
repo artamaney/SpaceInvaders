@@ -1,4 +1,3 @@
-import os
 import Levels
 
 WINDOW_WIDTH = 1080
@@ -19,7 +18,6 @@ AIM_RANDOM = 'AIM_RANDOM'
 RIGHT = "RIGHT"
 LEFT = "LEFT"
 NOPE = "NOPE"
-cwd = os.getcwd()
 hard_invader_lives = 3
 medium_invader_lives = 2
 easy_invader_lives = 1

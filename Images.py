@@ -1,9 +1,9 @@
 from PyQt5.QtGui import QImage
-import Values
+import os
 
 
 def our_QImage(file):
-    return QImage(f'{Values.cwd}\\pictures\\{file}')
+    return QImage(os.path.join('pictures', file))
 
 
 BACKGROUND = our_QImage('background.png')
@@ -25,6 +25,7 @@ BUNKER_3 = our_QImage('bunker3.png')
 live_line = our_QImage('life_line')
 line_full = our_QImage('line_full')
 GAME_OVER = our_QImage('game_over.png')
+PAUSE = our_QImage('pause.png')
 ZERO = our_QImage('0.png')
 ONE = our_QImage('1.png')
 TWO = our_QImage('2.png')
