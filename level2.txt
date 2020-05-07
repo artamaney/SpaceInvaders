@@ -5,21 +5,21 @@ type = <3>
 
 [mediuminvader]
 damage = <2>
-lives = <2>
+lives = <1>
 type = <2>
 
 [hardinvader]
 damage = <3>
-lives = <3>
+lives = <1>
 type = <1>
 
 [enemies]
-<easyinvader> = <6>
-<mediuminvader> = <6>
-<hardinvader> = <6>
+<easyinvader> = <1>
+<mediuminvader> = <1>
+<hardinvader> = <1>
 
 [level]
-weight_cart = <15>
+weight_cart = <10>
 angle_cart = <60>
-interval_cart = <1000>
-lives_cart = <5>
+interval_cart = <2000>
+lives_cart = <6>

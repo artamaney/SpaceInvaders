@@ -53,36 +53,63 @@ class Cart:
         self.height = height
         self.direction = 'LEFT'
         self.weight = weight
+        self.vx = 0.1
+        self.vy = 0.1
+        self.sign = 1
+
+    def move(self, direction):
+        F = 0
+        x_middle = self.x_left + self.width / 2
+        sina = sin(Values.angle)
+        cosa = cos(Values.angle)
+        g = Values.G
+        m = self.weight
+        if direction == Values.LEFT:
+            F = 10 if x_middle <= Values.WINDOW_WIDTH / 2 else -10
+        elif direction == Values.RIGHT:
+            F = -10 if x_middle <= Values.WINDOW_WIDTH / 2 else 10
+        if x_middle <= Values.WINDOW_WIDTH / 2:
+            self.sign = 1 if self.vx <= 0 else -1
+        else:
+            self.sign = -1 if self.vx < 0 else 1
+        ma = (m * g * sina +
+              Values.RATIO * m * g * cosa * self.sign - F)
+        a = ma / m
+        dx = a * cosa * 0.001
+        if x_middle <= Values.WINDOW_WIDTH / 2:
+            self.vx += dx
+            if self.x_left <= 0:
+                self.vx = 0.1
+            if direction == Values.NOPE:
+                x_middle += self.vx
+            if direction == Values.LEFT and self.x_left > 0:
+                x_middle += self.vx
+            if direction == Values.RIGHT:
+                x_middle += self.vx
+        if x_middle > Values.WINDOW_WIDTH / 2:
+            self.vx -= dx
+            if self.x_left + self.width >= Values.WINDOW_WIDTH:
+                self.vx = -0.1
+            if direction == Values.NOPE:
+                x_middle += self.vx
+            if direction == Values.RIGHT and \
+                    x_middle + self.width <= Values.WINDOW_WIDTH:
+                x_middle += self.vx
+            if direction == Values.LEFT:
+                x_middle -= self.vx
+        y_middle = func_of_moving(x_middle)
+        self.y_top = y_middle - self.height / 2
+        self.x_left = x_middle - self.width / 2
+        if self.x_left <= 540:
+            self.x_left = max(x_middle - self.width / 2, 0)
+        if self.x_left > Values.WINDOW_WIDTH - self.width:
+            self.x_left = Values.WINDOW_WIDTH - self.width
 
     def intersect_cart(self, bullets_invader):
         for bullet in bullets_invader:
             if rectangles_intersected(bullet, self):
                 self.lives -= bullet.damage
                 bullets_invader.remove(bullet)
-
-    def move(self, direction, step_width):
-        x_middle = self.x_left + self.width / 2
-        real_step = 3 * step_width
-        if x_middle < 540 and self.lives > 0:
-            x_middle += step_width
-            if direction == Values.RIGHT:
-                x_middle += real_step
-            if direction == Values.LEFT and self.x_left > 0 \
-                    and self.x_left - 3 * step_width > 0:
-                x_middle -= real_step
-            y_middle = func_of_moving(x_middle)
-            self.y_top = y_middle - self.height / 2
-            self.x_left = x_middle - self.width / 2
-        if x_middle >= Values.WINDOW_WIDTH / 2 and self.lives > 0:
-            x_middle -= step_width
-            if direction == Values.LEFT:
-                x_middle -= real_step
-            if direction == Values.RIGHT and \
-                    self.x_left + self.width + real_step < Values.WINDOW_WIDTH:
-                x_middle += real_step
-            y_middle = func_of_moving(x_middle)
-            self.y_top = y_middle - self.height / 2
-            self.x_left = x_middle - self.width / 2
 
 
 class Cart_Bullet:
@@ -98,7 +125,7 @@ class Cart_Bullet:
         self.sign = -1 if angle <= 90 else 1
 
     def move(self, velocity):
-        g = 10
+        g = Values.G
         if self.x_left < 0:
             self.sign = 1
         if self.x_left > Values.WINDOW_WIDTH:
@@ -121,15 +148,15 @@ class Invader_Bullet:
         self.x1 = cart.x_left
         self.y1 = cart.y_top
         self.type = type
-        self.invader = invader
-        if type is Values.AIM_CART:
+        self.step = 0
+        if type == 1:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
-        if type is Values.BAD_AIM_CART:
+        if type == 2:
             self.step = (self.y1 + randint(-100, 100) - self.y_top) \
                         / (self.x1 + randint(-100, 100) - self.x_left)
             self.step = velocity / self.step
-        if type is Values.AIM_RANDOM:
+        if type == 3:
             self.step = (randint(600, Values.WINDOW_HEIGHT) - self.y_top) \
                         / (randint(0, Values.WINDOW_WIDTH) - self.x_left)
             self.step = velocity / self.step

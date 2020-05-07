@@ -18,12 +18,12 @@ class cart_tests(unittest.TestCase):
         self.window_width = Values.WINDOW_WIDTH
         self.window_height = Values.WINDOW_HEIGHT
         for i in range(200):
-            self.cart.move(Values.LEFT, 0.5)
+            self.cart.move(Values.LEFT)
         self.assertGreaterEqual(self.cart.x_left, 0)
         self.assertGreaterEqual(self.cart.y_top, 0)
         self.assertGreaterEqual(840, self.cart.y_top)
         for i in range(400):
-            self.cart.move(Values.RIGHT, 1)
+            self.cart.move(Values.RIGHT)
         self.assertGreaterEqual(1080, self.cart.x_left + self.cart.width)
         self.assertGreaterEqual(self.cart.y_top, 0)
         self.assertGreaterEqual(840, self.cart.y_top)
@@ -41,16 +41,16 @@ class cart_tests(unittest.TestCase):
     def test_cart_is_going_down(self):
         self.cart = Enemies.Cart(50, 530, 100, 80, 1, 3)
         for i in range(1000):
-            self.cart.move(Values.NOPE, 0.5)
+            self.cart.move(Values.NOPE)
         self.assertGreater(self.cart.x_left, 50)
         self.assertGreater(self.cart.y_top, 530)
 
     def test_cart_is_going_down_and_after_up_right(self):
         self.cart = Enemies.Cart(50, 530, 100, 80, 1, 3)
         for i in range(1000):
-            self.cart.move(Values.NOPE, 0.5)
+            self.cart.move(Values.NOPE)
         for i in range(10000):
-            self.cart.move(Values.RIGHT, 0.5)
+            self.cart.move(Values.RIGHT)
         self.assertGreater(self.cart.x_left, Values.WINDOW_WIDTH // 2)
         self.assertGreater(Values.WINDOW_HEIGHT - 100, self.cart.y_top)
 
@@ -136,6 +136,45 @@ class bunker_tests(unittest.TestCase):
             self.bunker = Enemies.Bunker(50, 450, 10000, 40000, 1)
         with self.assertRaises(ValueError):
             self.bunker = Enemies.Bunker(500, 450, 4, 4, 500000000000000)
+
+    def test_intersection_OK(self):
+        cart = Enemies.Cart(50, 50, 50, 50, 50, 3)
+        bullets = [Enemies.Invader_Bullet(50, 450, 25, 25, cart, 3, 3, 3, 0)]
+        bunkers = [Enemies.Bunker(50, 450, 50, 50, 3)]
+        for bunker in bunkers:
+            bunker.bullet_intersection(bullets, bunkers)
+        self.assertEqual(bunkers[0].lives, 2)
+
+
+class score_tests(unittest.TestCase):
+    def test_init_OK(self):
+        score = Enemies.Score(0)
+        self.assertEqual(score.score, 0)
+        score = Enemies.Score(5000)
+        self.assertEqual(score.score, 5000)
+
+    def test_reduce_OK(self):
+        score = Enemies.Score(0)
+        score.reduce()
+        self.assertEqual(score.score, 0)
+        score = Enemies.Score(500)
+        for i in range(100):
+            score.reduce()
+        self.assertEqual(score.score, 400)
+
+    def test_intersect_invader_OK(self):
+        score = Enemies.Score(0)
+        invaders = [Enemies.Invader(50, 50, 50, 50, 3, 1)]
+        bullets = [Enemies.Cart_Bullet(50, 50, 25, 25, 60)]
+        score.intersect_invader(bullets, invaders)
+        self.assertEqual(score.score, 50)
+
+    def test_intersect_cart_OK(self):
+        score = Enemies.Score(50)
+        cart = Enemies.Cart(50, 50, 50, 50, 50, 3)
+        bullets = [Enemies.Invader_Bullet(50, 50, 25, 25, cart, 3, 3, 3, 0)]
+        score.intersect_cart(bullets, cart)
+        self.assertEqual(score.score, 0)
 
 
 if __name__ == '__main__':
