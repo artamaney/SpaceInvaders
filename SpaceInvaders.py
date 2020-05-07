@@ -6,11 +6,23 @@ import Enemies
 from random import randint
 import Values
 import Images
+import Levels
+import argparse
+
+
+def createParser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('level', nargs='+')
+    return parser
 
 
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+        self.levels = createParser().parse_args(sys.argv[1:]).level
+        self.level_number = 0
+        self.level = Levels.levels(self.levels[self.level_number])
+        self.level.parse_level()
         self.pause_mode = False
         self.count = 0
         self.game_is_over = False
@@ -24,7 +36,7 @@ class MainWindow(QtWidgets.QWidget):
         self.bullets = []
         self.bullets_inv = []
         self.cart = Enemies.Cart(50, 530, Values.CART_WIDTH,
-                                 Values.CART_HEIGHT, Values.CART_WEIGHT, 3)
+                                 Values.CART_HEIGHT, self.level.weight_cart, 3)
         self.bunkers = self.init_bunkers()
         self.score = Enemies.Score(0)
         self.timer_update = QtCore.QTimer()
@@ -43,8 +55,8 @@ class MainWindow(QtWidgets.QWidget):
                                                      self.invaders))
         self.timer.timeout.connect(lambda: self.intersection_bullet_invader())
         self.timer.timeout.connect(lambda: self.kill_bunker())
-        self.timer.timeout.connect(lambda: self.cart.move(
-            Values.NOPE, int(not self.pause_mode) / 2))
+        self.timer.timeout.connect(lambda: self.cart.move(Values.NOPE))
+        self.timer.timeout.connect(lambda: self.win())
         self.timer.start(5)
         self.timer2 = QtCore.QTimer()
         self.timer2.timeout.connect(lambda: self.invader_makes_bullets())
@@ -55,7 +67,7 @@ class MainWindow(QtWidgets.QWidget):
         self.able_fire = False
         self.timer4 = QtCore.QTimer()
         self.timer4.timeout.connect(lambda: self.able_to_fire())
-        self.timer4.start(Values.interval_for_cart)
+        self.timer4.start(self.level.interval_cart)
         self.initUI()
 
     def initUI(self):
@@ -102,20 +114,33 @@ class MainWindow(QtWidgets.QWidget):
 
         if not (self.pause_mode or self.game_is_over):
             if key == QtCore.Qt.Key_Right:
-                self.cart.move(Values.RIGHT, 4)
+                self.cart.move(Values.RIGHT)
                 self.cart.direction = Values.RIGHT
             if key == QtCore.Qt.Key_Left:
-                self.cart.move(Values.LEFT, 4)
-            self.cart.direction = Values.LEFT
+                self.cart.move(Values.LEFT)
+                self.cart.direction = Values.LEFT
             if key == QtCore.Qt.Key_Space and self.able_fire:
                 bullet = Enemies.Cart_Bullet(self.cart.x_left,
                                              self.cart.y_top + 2,
                                              Values.BULLET_RADIUS,
                                              Values.BULLET_RADIUS,
-                                             Values.BULLET_ANGLE)
+                                             self.level.angle_cart)
                 self.bullets.append(bullet)
-                self.timer4.start(Values.interval_for_cart)
+                self.timer4.start(self.level.interval_cart)
                 self.able_fire = False
+
+    def win(self):
+        if len(self.invaders) == 0 and \
+                self.level_number != len(self.levels) - 1:
+            self.level_number += 1
+            self.level = Levels.levels(self.levels[self.level_number])
+            self.level.parse_level()
+            self.bunkers = self.init_bunkers()
+            self.invaders = self.init_invaders()
+            self.cart = Enemies.Cart(50, 530, Values.CART_WIDTH,
+                                     Values.CART_HEIGHT,
+                                     self.level.weight_cart,
+                                     3)
 
     def able_to_fire(self):
         self.able_fire = True
@@ -129,7 +154,8 @@ class MainWindow(QtWidgets.QWidget):
     def print_cart(self, painter):
         rect_cart = QtCore.QRect(self.cart.x_left, self.cart.y_top,
                                  self.cart.width, self.cart.height)
-        if self.cart.x_left < Values.WINDOW_WIDTH / 2 - 30:
+        if self.cart.x_left + self.cart.width / 2 <= \
+                Values.WINDOW_WIDTH / 2 - 3:
             img = Images.CARTRD
             if self.cart.direction == Values.LEFT:
                 img = Images.CARTLU
@@ -142,15 +168,15 @@ class MainWindow(QtWidgets.QWidget):
     def print_pause(self, painter):
         if self.pause_mode:
             rect_pause = QtCore.QRect(Values.WINDOW_WIDTH // 2 - 200,
-                                      Values.WINDOW_HEIGHT // 2 - 200, 400, 200)
+                                      Values.WINDOW_HEIGHT // 2 - 200,
+                                      400, 200)
             painter.drawImage(rect_pause, Images.PAUSE)
 
-    @staticmethod
-    def print_lives(painter, invader):
+    def print_lives(self, painter, invader):
         rect_lives = QtCore.QRect(invader.x_left + 5,
                                   invader.y_top + invader.height,
                                   60, 5)
-        full_value = Values.lives[invader.level - 1]
+        full_value = self.level.lives[invader.level - 1]
         rect_our_lives = QtCore.QRect(invader.x_left + 5,
                                       invader.y_top + invader.height,
                                       int(invader.lives * 60 / full_value),
@@ -228,7 +254,9 @@ class MainWindow(QtWidgets.QWidget):
                                             Values.BULLET_RADIUS,
                                             Values.BULLET_RADIUS,
                                             self.cart, 1, invader.lives,
-                                            Values.current_type, invader)
+                                            self.level.types
+                                            [invader.level - 1],
+                                            invader)
             self.bullets_inv.append(bullet)
 
     def invader_fire(self):
@@ -252,7 +280,7 @@ class MainWindow(QtWidgets.QWidget):
             for invader in self.invaders:
                 if Values.CAN_MOVE_DOWN \
                         and self.invaders[len(self.invaders) - 1].y_top < 350:
-                    invader.move_down(step * 10)
+                    invader.move_down(step * 40)
                     self.count += 1
                     if self.count % len(self.invaders) == 0:
                         Values.CAN_MOVE_DOWN = False
@@ -284,22 +312,22 @@ class MainWindow(QtWidgets.QWidget):
             array.append(self.score.score // 10 ** i % 10)
         return array
 
-    @staticmethod
-    def init_invaders():
+    def init_invaders(self):
         invaders = []
-        count = Values.easyInvadersCount + Values.hardInvadersCount \
-                                         + Values.mediumInvadersCount
-        medium = Values.mediumInvadersCount
-        hard = Values.hardInvadersCount
+        medium = self.level.mediumInvadersCount
+        hard = self.level.hardInvadersCount
+        count = self.level.easyInvadersCount + medium + hard
         hard_v = 3 if hard > 0 else -1
         mid_v = 2 if medium > 0 else -1
         easy_v = 1 if count - hard - medium > 0 else -1
         for i in range(count):
             invaders.append(Enemies.Invader(30 + (i % 6) * 150,
-                                            50 + (i // 6 % (count // 3)) * 80,
+                                            50 + (i // 6 % (count //
+                                                            3 + 1)) * 80,
                                             Values.INVADER_WIDTH,
                                             Values.INVADER_HEIGHT,
-                                            max(hard_v, mid_v, easy_v),
+                                            self.level.lives
+                                            [max(hard_v, mid_v, easy_v) - 1],
                                             max(hard_v, mid_v, easy_v)))
             hard -= 1
             if hard <= 0:
