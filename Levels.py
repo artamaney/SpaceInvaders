@@ -4,7 +4,7 @@ import re
 class levels:
     def __init__(self, level):
         self.level = level
-        self.reg_exp = re.compile('(\d+)')
+        self.reg_exp = re.compile(r'(\d+)')
         self.easy_damage = 0
         self.easy_lives = 0
         self.easy_type = 0

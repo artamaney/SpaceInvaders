@@ -36,7 +36,8 @@ class MainWindow(QtWidgets.QWidget):
         self.bullets = []
         self.bullets_inv = []
         self.cart = Enemies.Cart(50, 530, Values.CART_WIDTH,
-                                 Values.CART_HEIGHT, self.level.weight_cart, 3)
+                                 Values.CART_HEIGHT, self.level.weight_cart,
+                                 self.level.lives_cart)
         self.bunkers = self.init_bunkers()
         self.score = Enemies.Score(0)
         self.timer_update = QtCore.QTimer()

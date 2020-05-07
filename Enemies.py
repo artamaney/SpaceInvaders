@@ -149,6 +149,7 @@ class Invader_Bullet:
         self.y1 = cart.y_top
         self.type = type
         self.step = 0
+        self.invader = invader
         if type == 1:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
