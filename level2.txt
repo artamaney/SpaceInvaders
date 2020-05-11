@@ -1,25 +1,25 @@
 [easyinvader]
-damage = <1>
-lives = <1>
-type = <3>
+damage = 1
+lives = 1
+type = 3
 
 [mediuminvader]
-damage = <2>
-lives = <1>
-type = <2>
+damage = 2
+lives = 1
+type = 2
 
 [hardinvader]
-damage = <3>
-lives = <1>
-type = <1>
+damage = 3
+lives = 1
+type = 1
 
 [enemies]
-<easyinvader> = <1>
-<mediuminvader> = <1>
-<hardinvader> = <1>
+easyInvadersCount = 1
+mediumInvadersCount = 1
+hardInvadersCount = 1
 
 [level]
-weight_cart = <10>
-angle_cart = <60>
-interval_cart = <2000>
-lives_cart = <10>
+weight_cart = 10
+angle_cart = 60
+interval_cart = 2000
+lives_cart = 10

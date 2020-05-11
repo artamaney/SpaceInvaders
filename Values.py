@@ -1,7 +1,7 @@
 from math import pi
 
-G = 10
-angle = 30 / 360 * pi * 2
+G = 9.8
+ANGLE = 1 / 6 * pi
 RATIO = 0.25
 WINDOW_WIDTH = 1080
 WINDOW_HEIGHT = 840
@@ -10,7 +10,7 @@ CART_HEIGHT = 100
 INVADER_WIDTH = 70
 INVADER_HEIGHT = 70
 BULLET_RADIUS = 30
-interval_for_score = 1000
+INTERVAL_FOR_SCORE = 1000
 CAN_MOVE_DOWN = False
 AIM_CART = 'AIM_CART'
 BAD_AIM_CART = 'BAD_AIM_CART'
@@ -18,5 +18,5 @@ AIM_RANDOM = 'AIM_RANDOM'
 RIGHT = "RIGHT"
 LEFT = "LEFT"
 NOPE = "NOPE"
-interval_for_invaders = 2000
-bunkersCount = 5
+INTERVAL_FOR_INVADERS = 2000
+BUNKERS_COUNT = 5

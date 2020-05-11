@@ -3,7 +3,7 @@ import Enemies
 import Values
 
 
-class cart_tests(unittest.TestCase):
+class CartTests(unittest.TestCase):
     def test_cart_init_OK(self):
         cart = Enemies.Cart(50, 50, 50, 50, 50, 3)
         self.assertEqual(cart.x_left, 50)
@@ -55,9 +55,9 @@ class cart_tests(unittest.TestCase):
         self.assertGreater(Values.WINDOW_HEIGHT - 100, self.cart.y_top)
 
 
-class bullet_tests(unittest.TestCase):
+class BulletTests(unittest.TestCase):
     def test_init_is_OK(self):
-        bullet = Enemies.Cart_Bullet(55, 55, 5, 5, 90)
+        bullet = Enemies.CartBullet(55, 55, 5, 5, 90, 3)
         self.assertEqual(bullet.x_left, 55)
         self.assertEqual(bullet.y_top, 55)
         self.assertEqual(bullet.width, 5)
@@ -65,41 +65,41 @@ class bullet_tests(unittest.TestCase):
         self.assertEqual(bullet.angle, 90)
 
     def test_bullet_doesnt_know_about_negative_y(self):
-        bullet = Enemies.Cart_Bullet(1, 1, 1, 1, 90)
-        bullet.move(100)  # it is illegal
+        bullet = Enemies.CartBullet(1, 1, 1, 1, 90, 3)
+        bullet.move()  # it is illegal
         self.assertGreater(0, bullet.y_top)
 
     def test_bullet_bounce_after_wall(self):
-        bullet = Enemies.Cart_Bullet(0.5, 1, 1, 1, 45)
-        bullet.move(1)
-        bullet.move(1)
-        bullet.move(1)
+        bullet = Enemies.CartBullet(0.5, 1, 1, 1, 45, 3)
+        bullet.move()
+        bullet.move()
+        bullet.move()
         self.assertGreater(bullet.x_left, 1)
 
     def test_bullet_moves_correctly(self):
-        bullet1 = Enemies.Cart_Bullet(1, 500, 1, 1, 90)
-        bullet1.move(1)
-        self.assertEqual(bullet1.y_top, 499)
+        bullet1 = Enemies.CartBullet(1, 500, 1, 1, 90, 3)
+        bullet1.move()
+        self.assertEqual(bullet1.y_top, 497)
         bullet_x_moves_OK1 = 1 - 1e-5 <= bullet1.x_left <= 1 + 1e-5
         self.assertTrue(bullet_x_moves_OK1)
-        bullet2 = Enemies.Cart_Bullet(10, 500, 1, 1, 30)
-        bullet2.move(1)
-        self.assertEqual(bullet2.y_top, 499.5)
+        bullet2 = Enemies.CartBullet(10, 500, 1, 1, 30, 3)
+        bullet2.move()
+        self.assertEqual(bullet2.y_top, 498.5)
         self.assertGreater(10, bullet2.x_left)
-        bullet3 = Enemies.Cart_Bullet(10, 500, 1, 1, 60)
-        bullet3.move(1)
-        bullet_x_moves_OK3 = 9.5 - 1e-5 <= bullet3.x_left <= 9.5 + 1e-5
+        bullet3 = Enemies.CartBullet(10, 500, 1, 1, 60, 3)
+        bullet3.move()
+        bullet_x_moves_OK3 = 8.5 - 1e-5 <= bullet3.x_left <= 8.5 + 1e-5
         self.assertTrue(bullet_x_moves_OK3)
         self.assertGreater(500, bullet3.y_top)
 
     def test_init_error(self):
         with self.assertRaises(ValueError):
-            self.bullet = Enemies.Cart_Bullet(1, 1, 0, 0, 60)
+            self.bullet = Enemies.CartBullet(1, 1, 0, 0, 60, 3)
         with self.assertRaises(ValueError):
-            self.bullet = Enemies.Cart_Bullet(1, 1, -1, -1, 666)
+            self.bullet = Enemies.CartBullet(1, 1, -1, -1, 666, 999)
 
 
-class invader_tests(unittest.TestCase):
+class InvaderTests(unittest.TestCase):
     def test_init_OK(self):
         invader = Enemies.Invader(55, 55, 55, 55, 1, 1)
         self.assertEqual(invader.x_left, 55)
@@ -118,7 +118,7 @@ class invader_tests(unittest.TestCase):
             self.invader = Enemies.Invader(555, 555, 555, 555, 99999999, 9999)
 
 
-class bunker_tests(unittest.TestCase):
+class BunkerTests(unittest.TestCase):
     def test_init_OK(self):
         bunker = Enemies.Bunker(51, 450, 50, 49, 1)
         self.assertEqual(bunker.x_left, 51)
@@ -139,14 +139,14 @@ class bunker_tests(unittest.TestCase):
 
     def test_intersection_OK(self):
         cart = Enemies.Cart(50, 50, 50, 50, 50, 3)
-        bullets = [Enemies.Invader_Bullet(50, 450, 25, 25, cart, 3, 3, 3, 0)]
+        bullets = [Enemies.InvaderBullet(50, 450, 25, 25, cart, 3, 3, 3, 0)]
         bunkers = [Enemies.Bunker(50, 450, 50, 50, 3)]
         for bunker in bunkers:
             bunker.bullet_intersection(bullets, bunkers)
         self.assertEqual(bunkers[0].lives, 2)
 
 
-class score_tests(unittest.TestCase):
+class ScoreTests(unittest.TestCase):
     def test_init_OK(self):
         score = Enemies.Score(0)
         self.assertEqual(score.score, 0)
@@ -165,14 +165,14 @@ class score_tests(unittest.TestCase):
     def test_intersect_invader_OK(self):
         score = Enemies.Score(0)
         invaders = [Enemies.Invader(50, 50, 50, 50, 3, 1)]
-        bullets = [Enemies.Cart_Bullet(50, 50, 25, 25, 60)]
+        bullets = [Enemies.CartBullet(50, 50, 25, 25, 60, 3)]
         score.intersect_invader(bullets, invaders)
         self.assertEqual(score.score, 50)
 
     def test_intersect_cart_OK(self):
         score = Enemies.Score(50)
         cart = Enemies.Cart(50, 50, 50, 50, 50, 3)
-        bullets = [Enemies.Invader_Bullet(50, 50, 25, 25, cart, 3, 3, 3, 0)]
+        bullets = [Enemies.InvaderBullet(50, 50, 25, 25, cart, 3, 3, 3, 0)]
         score.intersect_cart(bullets, cart)
         self.assertEqual(score.score, 0)
 

@@ -36,5 +36,7 @@ SIX = our_QImage('6.png')
 SEVEN = our_QImage('7.png')
 EIGHT = our_QImage('8.png')
 NINE = our_QImage('9.png')
+BUNKERS = [BUNKER_3, BUNKER_2, BUNKER_1]
+INVADERS = [INVADER, MEDIUM_INVADER, HARD_INVADER]
 ARR = [ZERO, ONE, TWO, THREE, FOUR, FIVE,
        SIX, SEVEN, EIGHT, NINE]
