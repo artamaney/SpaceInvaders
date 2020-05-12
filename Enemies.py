@@ -21,9 +21,11 @@ class Invader:
         for bullet in bullets:
             if rectangles_intersected(bullet, self):
                 self.lives = max(0, self.lives - 1)
+                bullet.power = max(0, bullet.power - 1)
+                if bullet.power <= 0:
+                    bullets.remove(bullet)
                 if self.lives <= 0:
                     invaders.remove(self)
-                bullets.remove(bullet)
 
     def move_right(self, step):
         self.x_left += step
@@ -112,8 +114,8 @@ class Cart:
 
 
 class CartBullet:
-    def __init__(self, x, y, width, height, angle, cart_force):
-        if not (1 <= width <= 30 and 1 <= height <= 30):
+    def __init__(self, x, y, width, height, angle, cart_force, power):
+        if not (1 <= width <= 30 and 1 <= height <= 30 and power >= 1):
             raise ValueError
         self.x_left = x
         self.y_top = y
@@ -124,6 +126,7 @@ class CartBullet:
         self.cart_force = cart_force
         self.sign = -1 if angle <= 90 else 1
         self.velocity = 3
+        self.power = power
 
     def move(self):
         g = Values.G
@@ -215,6 +218,53 @@ class Score:
                 self.score -= 1000 * bullet.damage // cart.lives
                 if self.score < 0:
                     self.score = 0
+
+
+class HealthBonus:
+    def __init__(self, x, y, width, height, cart, bullets, lives, active):
+        self.x_left = x
+        self.y_top = y
+        self.width = width
+        self.height = height
+        self.cart = cart
+        self.bullets = bullets
+        self.lives = lives
+        self.active = active
+
+    def intersect_bullet(self):
+        for bullet in self.bullets:
+            if rectangles_intersected(bullet, self):
+                self.cart.lives += self.lives
+                self.active = False
+                self.bullets.remove(bullet)
+                break
+
+    def is_outside(self):
+        if self.x_left >= Values.WINDOW_WIDTH:
+            self.active = False
+
+
+class BulletBonus:
+    def __init__(self, x, y, width, height, bullets, power, active):
+        self.x_left = x
+        self.y_top = y
+        self.width = width
+        self.height = height
+        self.bullets = bullets
+        self.active = active
+        self.power = power
+
+    def intersect_bullet(self):
+        for bullet in self.bullets:
+            if rectangles_intersected(bullet, self):
+                self.active = False
+                self.bullets.remove(bullet)
+                return self.power
+        return 0
+
+    def is_outside(self):
+        if self.x_left >= Values.WINDOW_WIDTH:
+            self.active = False
 
 
 def rectangles_intersected(r1, r2):

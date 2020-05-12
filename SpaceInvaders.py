@@ -24,6 +24,7 @@ class MainWindow(QtWidgets.QWidget):
         self.level = Levels.levels(self.levels[self.level_number])
         self.pause_mode = False
         self.count = 0
+        self.addition_power = 0
         self.game_is_over = False
         self.flag = True
         self.title = "SPACE INVADERS"
@@ -38,30 +39,37 @@ class MainWindow(QtWidgets.QWidget):
                                  Values.CART_HEIGHT, self.level.weight_cart,
                                  self.level.lives_cart)
         self.bunkers = self.init_bunkers()
+        self.health_bonus = Enemies.HealthBonus(0, 0, 0, 0, self.cart,
+                                                self.bullets, 0, False)
+        self.bullet_bonus = Enemies.BulletBonus(0, 0, 0, 0,
+                                                self.bullets, 0, False)
         self.score = Enemies.Score(0)
         self.timer_update = QtCore.QTimer()
         self.timer_update.timeout.connect(self.update)
         self.timer_update.start(5)
-        self.main_actions_timer = QtCore.QTimer()
-        self.main_actions_timer.timeout.connect(lambda: self.cart_fire())
-        self.main_actions_timer.timeout.connect(lambda: self.move_invaders())
-        self.main_actions_timer.timeout.connect(lambda: self.invader_fire())
-        self.main_actions_timer.timeout.connect(lambda: self.cart.
-                                                intersect_cart
-                                                (self.bullets_inv))
-        self.main_actions_timer.timeout.connect(lambda: self.score.
-                                                intersect_cart
-                                                (self.bullets_inv, self.cart))
-        self.main_actions_timer.timeout.connect(lambda: self.score.
-                                                intersect_invader
-                                                (self.bullets, self.invaders))
-        self.main_actions_timer.timeout.connect(
-            lambda: self.intersection_bullet_invader())
-        self.main_actions_timer.timeout.connect(lambda: self.kill_bunker())
-        self.main_actions_timer.timeout.connect(
-            lambda: self.cart.move(Values.NOPE))
-        self.main_actions_timer.timeout.connect(lambda: self.win())
-        self.main_actions_timer.start(5)
+        self.main_timer = QtCore.QTimer()
+        self.main_timer.timeout.connect(lambda: self.cart_fire())
+        self.main_timer.timeout.connect(lambda: self.move_invaders())
+        self.main_timer.timeout.connect(lambda: self.invader_fire())
+        self.main_timer.timeout.connect(lambda: self.cart.intersect_cart
+                                        (self.bullets_inv))
+        self.main_timer.timeout.connect(lambda: self.init_bonuses())
+        self.main_timer.timeout.connect(lambda: self.score.intersect_cart
+                                        (self.bullets_inv, self.cart))
+        self.main_timer.timeout.connect(lambda: self.score.intersect_invader
+                                        (self.bullets, self.invaders))
+        self.main_timer.timeout.connect(lambda:
+                                        self.intersection_bullet_invader())
+        self.main_timer.timeout.connect(lambda: self.kill_bunker())
+        self.main_timer.timeout.connect(lambda: self.cart.move(Values.NOPE))
+        self.main_timer.timeout.connect(lambda: self.win())
+        self.main_timer.timeout.connect(lambda: self.move_bonus
+                                        (self.health_bonus))
+        self.main_timer.timeout.connect(lambda: self.move_bonus
+                                        (self.bullet_bonus))
+        self.main_timer.timeout.connect(lambda: self.intersect_bonus_health())
+        self.main_timer.timeout.connect(lambda: self.intersect_bonus_bullet())
+        self.main_timer.start(5)
         self.invaders_fire_timer = QtCore.QTimer()
         self.invaders_fire_timer.timeout.connect(
             lambda: self.invader_makes_bullets())
@@ -101,18 +109,20 @@ class MainWindow(QtWidgets.QWidget):
             self.print_game_over(painter)
         self.print_score(painter)
         self.print_pause(painter)
+        self.print_health_bonus(painter)
+        self.print_bullet_bonus(painter)
 
     def keyPressEvent(self, event):
         key = event.key()
         if key == QtCore.Qt.Key_P:
             self.pause_mode = not self.pause_mode
             if self.pause_mode:
-                self.main_actions_timer.stop()
+                self.main_timer.stop()
                 self.invaders_fire_timer.stop()
                 self.score_timer.stop()
                 self.cart_fire_timer.stop()
             else:
-                self.main_actions_timer.start()
+                self.main_timer.start()
                 self.invaders_fire_timer.start()
                 self.score_timer.start()
                 self.cart_fire_timer.start()
@@ -134,7 +144,8 @@ class MainWindow(QtWidgets.QWidget):
                                             self.cart.y_top - 2,
                                             Values.BULLET_RADIUS,
                                             Values.BULLET_RADIUS, angle,
-                                            velocity)
+                                            velocity, 1 + self.addition_power)
+                self.addition_power = 0
                 self.bullets.append(bullet)
                 self.cart_fire_timer.start(self.level.interval_cart)
                 self.able_fire = False
@@ -152,6 +163,22 @@ class MainWindow(QtWidgets.QWidget):
 
     def able_to_fire(self):
         self.able_fire = True
+
+    def print_bullet_bonus(self, painter):
+        if self.bullet_bonus.active:
+            rect_bullet_bonus = QtCore.QRect(self.bullet_bonus.x_left,
+                                             self.bullet_bonus.y_top,
+                                             self.bullet_bonus.width,
+                                             self.bullet_bonus.height)
+            painter.drawImage(rect_bullet_bonus, Images.BULLET_BOUNS)
+
+    def print_health_bonus(self, painter):
+        if self.health_bonus.active:
+            rect_health = QtCore.QRect(self.health_bonus.x_left,
+                                       self.health_bonus.y_top,
+                                       self.health_bonus.width,
+                                       self.health_bonus.height)
+            painter.drawImage(rect_health, Images.HEALTH)
 
     def print_score(self, painter):
         score = self.find_score()
@@ -292,6 +319,20 @@ class MainWindow(QtWidgets.QWidget):
                         self.flag = self.get_left_invader_x() <= 10
                         Values.CAN_MOVE_DOWN = self.flag
 
+    @staticmethod
+    def move_bonus(bonus):
+        if bonus.active:
+            bonus.x_left += 1
+            bonus.is_outside()
+
+    def intersect_bonus_health(self):
+        if self.health_bonus.active:
+            self.health_bonus.intersect_bullet()
+
+    def intersect_bonus_bullet(self):
+        if self.bullet_bonus.active:
+            self.addition_power = self.bullet_bonus.intersect_bullet()
+
     def intersection_bullet_invader(self):
         for invader in self.invaders:
             invader.intersect_bullet(self.bullets, self.invaders)
@@ -341,6 +382,31 @@ class MainWindow(QtWidgets.QWidget):
             bunkers.append(Enemies.Bunker((100 + (i + 1) * 350) % 900,
                                           430, 100, 100, 3))
         return bunkers
+
+    def init_bonuses(self):
+        for invader in self.invaders:
+            for bullet in self.bullets:
+                if Enemies.rectangles_intersected(bullet, invader):
+                    random = randint(0, 100)
+                    count = self.level.probability // 2
+                    invder = self.invaders[len(self.invaders) - 1]
+                    if 0 <= random < count:
+                        self.health_bonus = Enemies.HealthBonus(0,
+                                                                invder.y_top
+                                                                + 80,
+                                                                40, 40,
+                                                                self.cart,
+                                                                self.bullets,
+                                                                self.level.
+                                                                lives_bonus,
+                                                                True)
+                    if count <= random <= 2 * count:
+                        self.bullet_bonus = Enemies.BulletBonus(0, invder.y_top
+                                                                + 80, 40, 40,
+                                                                self.bullets,
+                                                                self.level.
+                                                                bullet_bonus,
+                                                                True)
 
 
 if __name__ == '__main__':

@@ -25,6 +25,9 @@ class levels:
         self.angle_cart = int(config.get('level', 'angle_cart'))
         self.interval_cart = int(config.get('level', 'interval_cart'))
         self.lives_cart = int(config.get('level', 'lives_cart'))
+        self.probability = int(config.get('level', 'probability'))
+        self.lives_bonus = int(config.get('level', 'lives_bonus'))
+        self.bullet_bonus = int(config.get('level', 'bullet_bonus'))
         self.lives = [self.easy_lives, self.medium_lives, self.hard_lives]
         self.types = [self.easy_type, self.medium_type, self.hard_type]
         self.damages = [self.easy_damage,

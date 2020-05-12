@@ -23,3 +23,6 @@ weight_cart = 10
 angle_cart = 60
 interval_cart = 2000
 lives_cart = 10
+probability = 50
+lives_bonus = 2
+bullet_bonus = 3
