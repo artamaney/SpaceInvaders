@@ -215,9 +215,18 @@ class Score:
     def intersect_cart(self, bullets, cart):
         for bullet in bullets:
             if rectangles_intersected(bullet, cart):
-                self.score -= 1000 * bullet.damage // cart.lives
-                if self.score < 0:
-                    self.score = 0
+                self.score = max(0, self.score - 1000 *
+                                 bullet.damage // cart.lives)
+                break
+
+    def intersect_mystery_ship(self, bullets, mystery_ship):
+        for bullet in bullets:
+            if rectangles_intersected(bullet, mystery_ship):
+                self.score += 500
+                bullets.remove(bullet)
+                mystery_ship.active = False
+                mystery_ship.y_top = 2000
+                break
 
 
 class HealthBonus:
@@ -236,6 +245,7 @@ class HealthBonus:
             if rectangles_intersected(bullet, self):
                 self.cart.lives += self.lives
                 self.active = False
+                self.y_top = 2000
                 self.bullets.remove(bullet)
                 break
 
@@ -258,9 +268,24 @@ class BulletBonus:
         for bullet in self.bullets:
             if rectangles_intersected(bullet, self):
                 self.active = False
+                self.y_top = 2000
                 self.bullets.remove(bullet)
                 return self.power
         return 0
+
+    def is_outside(self):
+        if self.x_left >= Values.WINDOW_WIDTH:
+            self.active = False
+
+
+class MysteryShip:
+    def __init__(self, x, y, width, height, bullets, active):
+        self.x_left = x
+        self.y_top = y
+        self.width = width
+        self.height = height
+        self.bullets = bullets
+        self.active = active
 
     def is_outside(self):
         if self.x_left >= Values.WINDOW_WIDTH:

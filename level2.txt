@@ -26,3 +26,4 @@ lives_cart = 10
 probability = 50
 lives_bonus = 2
 bullet_bonus = 3
+interval_mystery_ship = 20000

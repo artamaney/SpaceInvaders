@@ -39,9 +39,11 @@ class MainWindow(QtWidgets.QWidget):
                                  Values.CART_HEIGHT, self.level.weight_cart,
                                  self.level.lives_cart)
         self.bunkers = self.init_bunkers()
-        self.health_bonus = Enemies.HealthBonus(0, 0, 0, 0, self.cart,
+        self.mystery_ship = Enemies.MysteryShip(0, 2000, 0, 0,
+                                                self.bullets, False)
+        self.health_bonus = Enemies.HealthBonus(0, 2000, 0, 0, self.cart,
                                                 self.bullets, 0, False)
-        self.bullet_bonus = Enemies.BulletBonus(0, 0, 0, 0,
+        self.bullet_bonus = Enemies.BulletBonus(0, 2000, 0, 0,
                                                 self.bullets, 0, False)
         self.score = Enemies.Score(0)
         self.timer_update = QtCore.QTimer()
@@ -51,11 +53,11 @@ class MainWindow(QtWidgets.QWidget):
         self.main_timer.timeout.connect(lambda: self.cart_fire())
         self.main_timer.timeout.connect(lambda: self.move_invaders())
         self.main_timer.timeout.connect(lambda: self.invader_fire())
+        self.main_timer.timeout.connect(lambda: self.score.intersect_cart
+                                        (self.bullets_inv, self.cart))
         self.main_timer.timeout.connect(lambda: self.cart.intersect_cart
                                         (self.bullets_inv))
         self.main_timer.timeout.connect(lambda: self.init_bonuses())
-        self.main_timer.timeout.connect(lambda: self.score.intersect_cart
-                                        (self.bullets_inv, self.cart))
         self.main_timer.timeout.connect(lambda: self.score.intersect_invader
                                         (self.bullets, self.invaders))
         self.main_timer.timeout.connect(lambda:
@@ -69,6 +71,11 @@ class MainWindow(QtWidgets.QWidget):
                                         (self.bullet_bonus))
         self.main_timer.timeout.connect(lambda: self.intersect_bonus_health())
         self.main_timer.timeout.connect(lambda: self.intersect_bonus_bullet())
+        self.main_timer.timeout.connect(lambda: self.score.
+                                        intersect_mystery_ship
+                                        (self.bullets, self.mystery_ship))
+        self.main_timer.timeout.connect(lambda: self.move_mystery_ship())
+        self.main_timer.timeout.connect(lambda: self.mystery_ship.is_outside())
         self.main_timer.start(5)
         self.invaders_fire_timer = QtCore.QTimer()
         self.invaders_fire_timer.timeout.connect(
@@ -81,6 +88,9 @@ class MainWindow(QtWidgets.QWidget):
         self.cart_fire_timer = QtCore.QTimer()
         self.cart_fire_timer.timeout.connect(lambda: self.able_to_fire())
         self.cart_fire_timer.start(self.level.interval_cart)
+        self.mystery_timer = QtCore.QTimer()
+        self.mystery_timer.timeout.connect(lambda: self.go_mystery_ship())
+        self.mystery_timer.start(self.level.interval_mystery_ship)
         self.initUI()
 
     def initUI(self):
@@ -111,6 +121,7 @@ class MainWindow(QtWidgets.QWidget):
         self.print_pause(painter)
         self.print_health_bonus(painter)
         self.print_bullet_bonus(painter)
+        self.print_mystery_ship(painter)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -164,13 +175,21 @@ class MainWindow(QtWidgets.QWidget):
     def able_to_fire(self):
         self.able_fire = True
 
+    def print_mystery_ship(self, painter):
+        if self.mystery_ship.active:
+            rect_ship = QtCore.QRect(self.mystery_ship.x_left,
+                                     self.mystery_ship.y_top,
+                                     self.mystery_ship.width,
+                                     self.mystery_ship.height)
+            painter.drawImage(rect_ship, Images.MYSTERY_SHIP)
+
     def print_bullet_bonus(self, painter):
         if self.bullet_bonus.active:
             rect_bullet_bonus = QtCore.QRect(self.bullet_bonus.x_left,
                                              self.bullet_bonus.y_top,
                                              self.bullet_bonus.width,
                                              self.bullet_bonus.height)
-            painter.drawImage(rect_bullet_bonus, Images.BULLET_BOUNS)
+            painter.drawImage(rect_bullet_bonus, Images.BULLET_BONUS)
 
     def print_health_bonus(self, painter):
         if self.health_bonus.active:
@@ -289,6 +308,14 @@ class MainWindow(QtWidgets.QWidget):
                 bullet.move()
                 if bullet.y_top + bullet.height >= 800:
                     self.bullets_inv.remove(bullet)
+
+    def go_mystery_ship(self):
+        self.mystery_ship = Enemies.MysteryShip(0, 500, 160, 80, self.bullets,
+                                                True)
+
+    def move_mystery_ship(self):
+        if self.mystery_ship.active:
+            self.mystery_ship.x_left += 1
 
     def get_left_invader_x(self):
         return sorted(self.invaders,
