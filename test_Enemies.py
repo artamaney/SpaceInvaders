@@ -80,15 +80,13 @@ class BulletTests(unittest.TestCase):
         bullet1 = Enemies.CartBullet(1, 500, 1, 1, 90, 3, 1)
         bullet1.move()
         self.assertEqual(bullet1.y_top, 497)
-        bullet_x_moves_OK1 = 1 - 1e-5 <= bullet1.x_left <= 1 + 1e-5
-        self.assertTrue(bullet_x_moves_OK1)
         bullet2 = Enemies.CartBullet(10, 500, 1, 1, 30, 3, 1)
         bullet2.move()
         self.assertEqual(bullet2.y_top, 498.5)
         self.assertGreater(10, bullet2.x_left)
         bullet3 = Enemies.CartBullet(10, 500, 1, 1, 60, 3, 1)
         bullet3.move()
-        bullet_x_moves_OK3 = 8.5 - 1e-5 <= bullet3.x_left <= 8.5 + 1e-5
+        bullet_x_moves_OK3 = 5.5 - 1e-5 <= bullet3.x_left <= 5.5 + 1e-5
         self.assertTrue(bullet_x_moves_OK3)
         self.assertGreater(500, bullet3.y_top)
 
@@ -153,6 +151,10 @@ class ScoreTests(unittest.TestCase):
         score = Enemies.Score(5000)
         self.assertEqual(score.score, 5000)
 
+    def test_init_error(self):
+        with self.assertRaises(ValueError):
+            self.score = Enemies.Score(-1)
+
     def test_reduce_OK(self):
         score = Enemies.Score(0)
         score.reduce()
@@ -175,6 +177,139 @@ class ScoreTests(unittest.TestCase):
         bullets = [Enemies.InvaderBullet(50, 50, 25, 25, cart, 3, 3, 3, 0)]
         score.intersect_cart(bullets, cart)
         self.assertEqual(score.score, 0)
+
+
+class HealthBonusTests(unittest.TestCase):
+    def test_init_OK(self):
+        bonus = Enemies.HealthBonus(0, 600, 60, 60,
+                                    Enemies.Cart(50, 50, 50, 50, 50, 3),
+                                    [Enemies.CartBullet(50, 50, 25,
+                                                        25, 60, 3, 1)],
+                                    3, True)
+        self.assertEqual(0, bonus.x_left)
+        self.assertEqual(600, bonus.y_top)
+        self.assertEqual(60, bonus.width)
+        self.assertEqual(60, bonus.height)
+        self.assertEqual(3, bonus.lives)
+        self.assertTrue(bonus.active)
+
+    def test_init_error(self):
+        with self.assertRaises(ValueError):
+            self.bonus = Enemies.HealthBonus(-1, 600, 60, 60,
+                                             Enemies.Cart(50, 50,
+                                                          50, 50, 50, 3),
+                                             [Enemies.CartBullet(50, 50, 25,
+                                                                 25, 60,
+                                                                 3, 1)],
+                                             3, True)
+        with self.assertRaises(ValueError):
+            self.bonus = Enemies.HealthBonus(0, 600, 560, 560,
+                                             Enemies.Cart(50, 50, 50, 50, 50,
+                                                          3),
+                                             [Enemies.CartBullet(50, 50, 25,
+                                                                 25, 6, 3, 1)],
+                                             3, True)
+        with self.assertRaises(ValueError):
+            self.bonus = Enemies.HealthBonus(0, 600, 60, 60,
+                                             Enemies.Cart(50, 50, 50, 50, 50,
+                                                          3),
+                                             [Enemies.CartBullet(50, 50, 25,
+                                                                 25, 6, 3, 1)],
+                                             -6, True)
+
+    def test_is_outside(self):
+        bonus = Enemies.HealthBonus(Values.WINDOW_WIDTH, 600, 60, 60,
+                                    Enemies.Cart(50, 50, 50, 50, 50, 3),
+                                    [Enemies.CartBullet(50, 50, 25,
+                                                        25, 60, 3, 1)],
+                                    3, True)
+        bonus.x_left += 1
+        bonus.is_outside()
+        self.assertFalse(bonus.active)
+
+    def test_intersect_bullet(self):
+        bonus = Enemies.HealthBonus(50, 50, 60, 60,
+                                    Enemies.Cart(50, 50, 50, 50, 50, 3),
+                                    [Enemies.CartBullet(50, 50, 25,
+                                                        25, 60, 3, 1)],
+                                    3, True)
+        bonus.intersect_bullet()
+        self.assertEqual(0, len(bonus.bullets))
+
+
+class BulletBonusTests(unittest.TestCase):
+    def test_init_OK(self):
+        bonus = Enemies.BulletBonus(0, 0, 100, 100,
+                                    [Enemies.CartBullet(50, 50, 25, 25,
+                                                        60, 3, 1)], 3, True)
+        self.assertEqual(0, bonus.x_left)
+        self.assertEqual(0, bonus.y_top)
+        self.assertEqual(100, bonus.width)
+        self.assertEqual(100, bonus.height)
+        self.assertEqual(3, bonus.power)
+        self.assertTrue(bonus.active)
+
+    def test_init_error(self):
+        with self.assertRaises(ValueError):
+            self.bonus = Enemies.BulletBonus(-1, 5, 5, 5, 5, 5, True)
+        with self.assertRaises(ValueError):
+            self.bonus = Enemies.BulletBonus(0, 0, 100, 100,
+                                             [Enemies.CartBullet(50, 50, 25,
+                                                                 25, 60, 3,
+                                                                 1)], -1,
+                                             True)
+
+    def test_is_outside(self):
+        bonus = Enemies.BulletBonus(Values.WINDOW_WIDTH, 0, 100, 100,
+                                    [Enemies.CartBullet(50, 50, 25, 25,
+                                                        60, 3, 1)], 3, True)
+        bonus.x_left += 1
+        bonus.is_outside()
+        self.assertFalse(bonus.active)
+
+    def test_intersect_bullet(self):
+        bonus = Enemies.BulletBonus(0, 0, 100, 100,
+                                    [Enemies.CartBullet(0, 0, 25, 25,
+                                                        60, 3, 1)], 3, True)
+        add_power = bonus.intersect_bullet()
+        self.assertEqual(3, add_power)
+        self.assertEqual(0, len(bonus.bullets))
+
+
+class MysteryShipTests(unittest.TestCase):
+    def test_init_OK(self):
+        mystery_ship = Enemies.MysteryShip(0, 0, 100, 100, [Enemies.CartBullet
+                                                            (0, 0, 25,
+                                                             25, 60, 3, 1)],
+                                           True)
+        self.assertEqual(0, mystery_ship.x_left)
+        self.assertEqual(0, mystery_ship.y_top)
+        self.assertEqual(100, mystery_ship.width)
+        self.assertEqual(100, mystery_ship.height)
+        self.assertTrue(mystery_ship.active)
+
+    def test_init_error(self):
+        with self.assertRaises(ValueError):
+            self.mystery_ship = Enemies.MysteryShip(-1, 0, 100, 100,
+                                                    [Enemies.CartBullet
+                                                     (0, 0, 25,
+                                                      25, 60, 3, 1)],
+                                                    True)
+        with self.assertRaises(ValueError):
+            self.mystery_ship = Enemies.MysteryShip(0, 0, 500, 900,
+                                                    [Enemies.CartBullet
+                                                     (0, 0, 25,
+                                                      25, 60, 3, 1)],
+                                                    True)
+
+    def test_is_outside(self):
+        mystery_ship = Enemies.MysteryShip(Values.WINDOW_WIDTH, 0, 100, 100,
+                                           [Enemies.CartBullet(0, 0, 25, 25,
+                                                               60, 3, 1)],
+                                           True)
+        mystery_ship.x_left += 1
+        mystery_ship.is_outside()
+        self.assertFalse(mystery_ship.active)
 
 
 if __name__ == '__main__':

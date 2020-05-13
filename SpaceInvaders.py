@@ -329,8 +329,8 @@ class MainWindow(QtWidgets.QWidget):
         if not (self.game_is_over or self.pause_mode):
             step = 0.1
             for invader in self.invaders:
-                if (Values.CAN_MOVE_DOWN
-                        and self.invaders[len(self.invaders) - 1].y_top < 350):
+                if (Values.CAN_MOVE_DOWN and
+                        self.invaders[len(self.invaders) - 1].y_top < 350):
                     invader.move_down(step * 40)
                     self.count += 1
                     if self.count % len(self.invaders) == 0:
@@ -418,18 +418,17 @@ class MainWindow(QtWidgets.QWidget):
                     count = self.level.probability // 2
                     invder = self.invaders[len(self.invaders) - 1]
                     if 0 <= random < count:
-                        self.health_bonus = Enemies.HealthBonus(0,
-                                                                invder.y_top
-                                                                + 80,
-                                                                40, 40,
-                                                                self.cart,
+                        self.health_bonus = Enemies.HealthBonus(0, invder.
+                                                                y_top + 80, 40,
+                                                                40, self.cart,
                                                                 self.bullets,
                                                                 self.level.
                                                                 lives_bonus,
                                                                 True)
                     if count <= random <= 2 * count:
-                        self.bullet_bonus = Enemies.BulletBonus(0, invder.y_top
-                                                                + 80, 40, 40,
+                        self.bullet_bonus = Enemies.BulletBonus(0,
+                                                                invder.y_top +
+                                                                80, 40, 40,
                                                                 self.bullets,
                                                                 self.level.
                                                                 bullet_bonus,

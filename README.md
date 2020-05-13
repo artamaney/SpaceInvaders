@@ -1,6 +1,6 @@
 # Game "Space Invaders"
 
-Version 1.3
+Version 1.5
 Developer Rogov Artemy (artemiyrogov1@gmail.com)
 
 ## Description
@@ -13,7 +13,7 @@ This app is an implementation of the game SPACE INVADERS with acceleration of fr
 
 ## Structure
 
-Main file (GUI and implementation of the game): `SpaceInvaders.py`
+Main module (GUI and implementation of the game): `SpaceInvaders.py`
 
 Modules: `Enemies.py`, `Values`, `Levels.py`
 
@@ -21,8 +21,10 @@ Tests: `tests.py`
 
 ## How to play
 for example you have levels: `level1.txt`, `level2.txt`
-this way
-`python SpaceInvader.py 2 1`
+using command line you can run the game
+
+`python SpaceInvaders.py level2.txt level1.txt`
+
 you will play at first `level2.txt`, after `level1.txt`
 
 ### Controlling
@@ -44,27 +46,31 @@ you will play at first `level2.txt`, after `level1.txt`
 You can make your own levels. You should only build new level`number`.txt using next sample:
 
 		[easyinvader]
-		damage = <value> (from 0 to infinity :) )
-		lives = <value> (from 0 to infinity :) )
-		type = <value> (from 1 to 3; 1 - aim on cart, 2 - aim near cart, 3 - random aim)
+		damage = value (from 0 to infinity :) )
+		lives = value (from 0 to infinity :) )
+		type = value (from 1 to 3; 1 - aim on cart, 2 - aim near cart, 3 - random aim)
 
 		[mediuminvader]
-		damage = <value>
-		lives = <value>
-		type = <value>
+		damage = value
+		lives = value
+		type = value
 
 		[hardinvader]
-		damage = <value>
-		lives = <value>
-		type = <value>
+		damage = value
+		lives = value
+		type = value
 
 		[enemies]
-		<easyinvader> = <count>
-		<mediuminvader> = <count>
-		<hardinvader> = <count> (please don`t make more than summary 27 enemies, also it should be bigger than 0)
+		easyinvader = count
+		mediuminvader = count
+		hardinvader = count (please don`t make more than summary 27 enemies, also it should be bigger than 0)
 
 		[level]
-		weight_cart = <value> (from 1 to 20, if it is very small, you will be very light, if it is very big, you won`t have opportunity to normally move)
-		angle_cart = <value> (from 30 to 150)
-		interval_cart = <value> (in ms, value=1000 - interval is 1 second)
-		lives_cart = <value> (from 1 to infinity :) )
+		weight_cart = value (from 1 to 20, if it is very small, you will be very light, if it is very big, you won`t have opportunity to normally move)
+		angle_cart = value (from 30 to 150)
+		interval_cart = value (in ms, value=1000 - interval is 1 second)
+		lives_cart = value (from 1 to infinity :) )
+		probability = value (in percents from 0 to 100, chance of dropping bonus after fire invader)
+            lives_bonus = value (count of lives bonus will give you)
+            bullet_bonus = value (count of additional power for next one bullet)
+            interval_mystery_ship = value (in ms, value=1000 - interval is 1 second)

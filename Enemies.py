@@ -135,8 +135,8 @@ class CartBullet:
         if self.x_left > Values.WINDOW_WIDTH:
             self.sign = -1
         velocity_y = self.velocity * sin(self.angle / 180 * pi) - g * self.time
-        velocity_x = (self.velocity * cos(self.angle / 180 * pi) * self.sign
-                      + self.cart_force * self.sign)
+        velocity_x = (self.velocity * cos(self.angle / 180 * pi) * self.sign +
+                      self.cart_force * self.sign)
         self.x_left += velocity_x
         self.y_top -= velocity_y
         self.time += 0.001
@@ -162,12 +162,12 @@ class InvaderBullet:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
         if attack_type == 2:
-            self.step = ((self.y1 + randint(-100, 100) - self.y_top)
-                         / (self.x1 + randint(-100, 100) - self.x_left))
+            self.step = ((self.y1 + randint(-100, 100) - self.y_top) /
+                         (self.x1 + randint(-100, 100) - self.x_left))
             self.step = velocity / self.step
         if attack_type == 3:
-            self.step = ((randint(600, Values.WINDOW_HEIGHT) - self.y_top)
-                         / (randint(0, Values.WINDOW_WIDTH) - self.x_left))
+            self.step = ((randint(600, Values.WINDOW_HEIGHT) - self.y_top) /
+                         (randint(0, Values.WINDOW_WIDTH) - self.x_left))
             self.step = velocity / self.step
 
     def move(self):
@@ -231,6 +231,10 @@ class Score:
 
 class HealthBonus:
     def __init__(self, x, y, width, height, cart, bullets, lives, active):
+        if not (0 <= x <= Values.WINDOW_WIDTH and
+                0 <= y <= Values.WINDOW_HEIGHT and 0 <= width <= 200 and
+                0 <= height <= 200 and 1 <= lives <= 5):
+            raise ValueError
         self.x_left = x
         self.y_top = y
         self.width = width
@@ -256,6 +260,10 @@ class HealthBonus:
 
 class BulletBonus:
     def __init__(self, x, y, width, height, bullets, power, active):
+        if not (0 <= x <= Values.WINDOW_WIDTH and
+                0 <= y <= Values.WINDOW_HEIGHT and 0 <= width <= 200 and
+                0 <= height <= 200 and power > 0):
+            raise ValueError
         self.x_left = x
         self.y_top = y
         self.width = width
@@ -280,6 +288,10 @@ class BulletBonus:
 
 class MysteryShip:
     def __init__(self, x, y, width, height, bullets, active):
+        if not (0 <= x <= Values.WINDOW_WIDTH and
+                0 <= y <= Values.WINDOW_HEIGHT and
+                0 <= width <= 300 and 0 <= height <= 200):
+            raise ValueError
         self.x_left = x
         self.y_top = y
         self.width = width
