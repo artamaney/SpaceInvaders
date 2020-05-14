@@ -39,11 +39,11 @@ class MainWindow(QtWidgets.QWidget):
                                  Values.CART_HEIGHT, self.level.weight_cart,
                                  self.level.lives_cart)
         self.bunkers = self.init_bunkers()
-        self.mystery_ship = Enemies.MysteryShip(0, 2000, 0, 0,
+        self.mystery_ship = Enemies.MysteryShip(0, 0, 0, 0,
                                                 self.bullets, False)
-        self.health_bonus = Enemies.HealthBonus(0, 2000, 0, 0, self.cart,
+        self.health_bonus = Enemies.HealthBonus(0, 0, 0, 0, self.cart,
                                                 self.bullets, 0, False)
-        self.bullet_bonus = Enemies.BulletBonus(0, 2000, 0, 0,
+        self.bullet_bonus = Enemies.BulletBonus(0, 0, 0, 0,
                                                 self.bullets, 0, False)
         self.score = Enemies.Score(0)
         self.timer_update = QtCore.QTimer()

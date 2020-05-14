@@ -220,20 +220,21 @@ class Score:
                 break
 
     def intersect_mystery_ship(self, bullets, mystery_ship):
-        for bullet in bullets:
-            if rectangles_intersected(bullet, mystery_ship):
-                self.score += 500
-                bullets.remove(bullet)
-                mystery_ship.active = False
-                mystery_ship.y_top = 2000
-                break
+        if mystery_ship.active:
+            for bullet in bullets:
+                if rectangles_intersected(bullet, mystery_ship):
+                    self.score += 500
+                    bullets.remove(bullet)
+                    mystery_ship.active = False
+                    mystery_ship.y_top = 2000
+                    break
 
 
 class HealthBonus:
     def __init__(self, x, y, width, height, cart, bullets, lives, active):
         if not (0 <= x <= Values.WINDOW_WIDTH and
                 0 <= y <= Values.WINDOW_HEIGHT and 0 <= width <= 200 and
-                0 <= height <= 200 and 1 <= lives <= 5):
+                0 <= height <= 200 and 0 <= lives <= 5):
             raise ValueError
         self.x_left = x
         self.y_top = y
@@ -245,13 +246,14 @@ class HealthBonus:
         self.active = active
 
     def intersect_bullet(self):
-        for bullet in self.bullets:
-            if rectangles_intersected(bullet, self):
-                self.cart.lives += self.lives
-                self.active = False
-                self.y_top = 2000
-                self.bullets.remove(bullet)
-                break
+        if self.active:
+            for bullet in self.bullets:
+                if rectangles_intersected(bullet, self):
+                    self.cart.lives += self.lives
+                    self.active = False
+                    self.y_top = 2000
+                    self.bullets.remove(bullet)
+                    break
 
     def is_outside(self):
         if self.x_left >= Values.WINDOW_WIDTH:
@@ -262,7 +264,7 @@ class BulletBonus:
     def __init__(self, x, y, width, height, bullets, power, active):
         if not (0 <= x <= Values.WINDOW_WIDTH and
                 0 <= y <= Values.WINDOW_HEIGHT and 0 <= width <= 200 and
-                0 <= height <= 200 and power > 0):
+                0 <= height <= 200 and power >= 0):
             raise ValueError
         self.x_left = x
         self.y_top = y
@@ -273,12 +275,13 @@ class BulletBonus:
         self.power = power
 
     def intersect_bullet(self):
-        for bullet in self.bullets:
-            if rectangles_intersected(bullet, self):
-                self.active = False
-                self.y_top = 2000
-                self.bullets.remove(bullet)
-                return self.power
+        if self.active:
+            for bullet in self.bullets:
+                if rectangles_intersected(bullet, self):
+                    self.active = False
+                    self.y_top = 2000
+                    self.bullets.remove(bullet)
+                    return self.power
         return 0
 
     def is_outside(self):

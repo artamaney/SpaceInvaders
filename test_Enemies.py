@@ -1,6 +1,8 @@
 import unittest
 import Enemies
 import Values
+import Levels
+import configparser
 
 
 class CartTests(unittest.TestCase):
@@ -310,6 +312,21 @@ class MysteryShipTests(unittest.TestCase):
         mystery_ship.x_left += 1
         mystery_ship.is_outside()
         self.assertFalse(mystery_ship.active)
+
+
+class LevelTests(unittest.TestCase):
+    def test_init_OK(self):
+        level = Levels.levels('leveltest.txt')
+        self.assertEqual(level.hard_lives, 1)
+        self.assertEqual(level.bullet_bonus, 1)
+        self.assertEqual(level.probability, 1)
+        self.assertEqual(level.angle_cart, 1)
+        self.assertEqual(level.hard_damage, 1)
+        self.assertEqual(level.hardInvadersCount, 6)
+
+    def test_init_error(self):
+        with self.assertRaises(configparser.NoSectionError):
+            self.level = Levels.levels('something')
 
 
 if __name__ == '__main__':
