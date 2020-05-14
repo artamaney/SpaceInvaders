@@ -1,0 +1,29 @@
+[easyinvader]
+damage = 1
+lives = 1
+type = 1
+
+[mediuminvader]
+damage = 1
+lives = 1
+type = 1
+
+[hardinvader]
+damage = 1
+lives = 1
+type = 1
+
+[enemies]
+easyInvadersCount = 6
+mediumInvadersCount= 6
+hardInvadersCount = 6
+
+[level]
+weight_cart = 1
+angle_cart = 1
+interval_cart = 10
+lives_cart = 1
+probability = 1
+lives_bonus = 1
+bullet_bonus = 1
+interval_mystery_ship = 2000
