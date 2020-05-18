@@ -151,6 +151,8 @@ class MainWindow(QtWidgets.QWidget):
                         Values.WINDOW_WIDTH / 2):
                     angle = self.level.angle_cart
                 velocity = abs(self.cart.vx) * 0.2
+                if self.cart.y_top >= 715:
+                    angle = 90
                 bullet = Enemies.CartBullet(self.cart.x_left,
                                             self.cart.y_top - 2,
                                             Values.BULLET_RADIUS,
@@ -239,11 +241,15 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_our_lives, Images.line_full)
 
     def print_cart_lives(self, painter):
+        painter.setFont(QtGui.QFont('XENOA', 30))
         rect_lives = QtCore.QRect(900, 750, 160, 60)
-        rect_our_lives = QtCore.QRect(900, 750, int(self.cart.lives * 160 /
-                                                    self.level.lives_cart), 60)
+        rect_lives_width = min(self.cart.lives * 160 // self.level.lives_cart,
+                               160)
+        rect_our_lives = QtCore.QRect(900, 750, rect_lives_width, 60)
         painter.drawImage(rect_lives, Images.live_line)
         painter.drawImage(rect_our_lives, Images.line_full)
+        painter.drawText(930, 795,
+                         f'{self.cart.lives * 100 // self.level.lives_cart}%')
 
     @staticmethod
     def print_bunker(painter, bunker):

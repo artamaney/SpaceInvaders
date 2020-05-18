@@ -52,10 +52,10 @@ class Cart:
         self.y_top = y
         self.width = width
         self.height = height
-        self.direction = 'LEFT'
+        self.direction = Values.NOPE
         self.weight = weight
-        self.vx = 0.1
-        self.vy = 0.1
+        self.vx = 0
+        self.vy = 0
         self.sign = 1
 
     def move(self, direction):
@@ -109,7 +109,7 @@ class Cart:
     def intersect_cart(self, bullets_invader):
         for bullet in bullets_invader:
             if rectangles_intersected(bullet, self):
-                self.lives -= bullet.damage
+                self.lives = max(0, self.lives - bullet.damage)
                 bullets_invader.remove(bullet)
 
 

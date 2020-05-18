@@ -27,3 +27,5 @@ probability = 1
 lives_bonus = 1
 bullet_bonus = 1
 interval_mystery_ship = 2000
+mystery_ship_score = 500
+fire_score = 50
