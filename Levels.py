@@ -1,7 +1,9 @@
 import configparser
 
+
 def our_config_get(config, option, name):
     return int(config.get(option, name))
+
 
 class levels:
     def __init__(self, level):
