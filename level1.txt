@@ -15,12 +15,11 @@ type = 1
 
 [enemies]
 easyInvadersCount = 6
-mediumInvadersCount= 6
+mediumInvadersCount = 6
 hardInvadersCount = 6
 
 [level]
 weight_cart = 15
-angle_cart = 60
 interval_cart = 1000
 lives_cart = 5
 probability = 90

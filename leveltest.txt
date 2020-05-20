@@ -20,7 +20,6 @@ hardInvadersCount = 6
 
 [level]
 weight_cart = 1
-angle_cart = 1
 interval_cart = 10
 lives_cart = 1
 probability = 1

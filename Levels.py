@@ -27,7 +27,6 @@ class levels:
                                                 'hardInvadersCount')
         self.weight_cart = our_config_get(config, 'level',
                                           'weight_cart') * 0.01
-        self.angle_cart = our_config_get(config, 'level', 'angle_cart')
         self.interval_cart = our_config_get(config, 'level', 'interval_cart')
         self.lives_cart = our_config_get(config, 'level', 'lives_cart')
         self.probability = our_config_get(config, 'level', 'probability')

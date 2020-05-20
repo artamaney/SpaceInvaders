@@ -285,7 +285,6 @@ class LevelTests(unittest.TestCase):
         self.assertEqual(level.hard_lives, 1)
         self.assertEqual(level.bullet_bonus, 1)
         self.assertEqual(level.probability, 1)
-        self.assertEqual(level.angle_cart, 1)
         self.assertEqual(level.hard_damage, 1)
         self.assertEqual(level.hardInvadersCount, 6)
 

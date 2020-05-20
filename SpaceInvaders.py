@@ -147,10 +147,10 @@ class MainWindow(QtWidgets.QWidget):
                 self.cart.move(Values.LEFT)
                 self.cart.direction = Values.LEFT
             if key == QtCore.Qt.Key_Space and self.able_fire:
-                angle = 360 + self.level.angle_cart
+                angle = 360 + 60
                 if (self.cart.x_left + self.cart.width // 2 >=
                         Values.WINDOW_WIDTH / 2):
-                    angle = self.level.angle_cart
+                    angle = 60
                 velocity = abs(self.cart.vx) * 0.2
                 if self.cart.y_top >= 715:
                     angle = 90
