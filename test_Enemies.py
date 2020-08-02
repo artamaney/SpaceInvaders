@@ -286,7 +286,6 @@ class LevelTests(unittest.TestCase):
         self.assertEqual(level.bullet_bonus, 1)
         self.assertEqual(level.probability, 1)
         self.assertEqual(level.hard_damage, 1)
-        self.assertEqual(level.hardInvadersCount, 6)
 
     def test_init_error(self):
         with self.assertRaises(configparser.NoSectionError):

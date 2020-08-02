@@ -45,7 +45,8 @@ class Cart:
     def __init__(self, x, y, width, height, weight, lives):
         if not (0 <= x <= Values.WINDOW_WIDTH and
                 0 <= y <= Values.WINDOW_HEIGHT and
-                10 <= height <= 100 and 10 <= width <= 200 and weight > 0):
+                10 <= height <= 100 and 10 <= width <= 200
+                and weight > 0):
             raise ValueError
         self.lives = lives
         self.x_left = x
@@ -61,8 +62,8 @@ class Cart:
     def move(self, direction):
         F = 0
         x_middle = self.x_left + self.width / 2
-        sina = sin(Values.ANGLE)
-        cosa = cos(Values.ANGLE)
+        sina = sin(pi / 6)
+        cosa = cos(pi / 6)
         g = Values.G
         m = self.weight
         if direction == Values.LEFT:
@@ -259,23 +260,6 @@ class HealthBonus:
         if self.y_top >= Values.WINDOW_HEIGHT:
             self.active = False
 
-    def move_bonus(self):
-        if self.active:
-            g = Values.G
-            velocity = 0.1
-            if self.angle == -1:
-                self.angle = randint(45, 135)
-            if self.x_left < 0:
-                self.sign = 1
-            if self.x_left > Values.WINDOW_WIDTH:
-                self.sign = -1
-            velocity_y = velocity * sin(self.angle / 180 * pi) + g * self.time
-            velocity_x = 10 * velocity * cos(self.angle / 180 * pi) * self.sign
-            self.x_left += velocity_x
-            self.y_top += velocity_y
-            self.time += 0.0005
-            self.is_outside()
-
 
 class BulletBonus:
     def __init__(self, x, y, width, height, cart, power, active):
@@ -305,22 +289,23 @@ class BulletBonus:
         if self.y_top >= Values.WINDOW_HEIGHT:
             self.active = False
 
-    def move_bonus(self):
-        if self.active:
-            g = Values.G
-            velocity = 0.1
-            if self.angle == -1:
-                self.angle = randint(45, 135)
-            if self.x_left < 0:
-                self.sign = 1
-            if self.x_left > Values.WINDOW_WIDTH:
-                self.sign = -1
-            velocity_y = velocity * sin(self.angle / 180 * pi) + g * self.time
-            velocity_x = 10 * velocity * cos(self.angle / 180 * pi) * self.sign
-            self.x_left += velocity_x
-            self.y_top += velocity_y
-            self.time += 0.0005
-            self.is_outside()
+
+def move_bonus(bonus):
+    if bonus.active:
+        g = Values.G
+        velocity = 0.1
+        if bonus.angle == -1:
+            bonus.angle = randint(45, 135)
+        if bonus.x_left < 0:
+            bonus.sign = 1
+        if bonus.x_left > Values.WINDOW_WIDTH:
+            bonus.sign = -1
+        velocity_y = velocity * sin(bonus.angle / 180 * pi) + g * bonus.time
+        velocity_x = 10 * velocity * cos(bonus.angle / 180 * pi) * bonus.sign
+        bonus.x_left += velocity_x
+        bonus.y_top += velocity_y
+        bonus.time += 0.0005
+        bonus.is_outside()
 
 
 class MysteryShip:
@@ -344,3 +329,16 @@ class MysteryShip:
 def rectangles_intersected(r1, r2):
     return (r2.y_top - r1.height <= r1.y_top <= r2.y_top + r2.height and
             r1.x_left - r2.width <= r2.x_left <= r1.x_left + r1.width)
+
+
+class Saving:
+    def __init__(self):
+        self.invaders = []
+        self.invader_bullets = []
+        self.bullets = []
+        self.score = 0
+        self.cart = []
+        self.bunkers = []
+        self.health_bonus = []
+        self.bullet_bonus = []
+        self.mystery_ship = []

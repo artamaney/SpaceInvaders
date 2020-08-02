@@ -8,6 +8,7 @@ import Values
 import Images
 import Levels
 import argparse
+import copy
 
 
 def createParser():
@@ -47,6 +48,9 @@ class MainWindow(QtWidgets.QWidget):
                                                 False)
         self.score = Enemies.Score(0, self.level.mystery_ship_score,
                                    self.level.fire_score)
+        self.saving = Enemies.Saving()
+        self.saving_count = 0
+        self.loading_count = 0
         self.timer_update = QtCore.QTimer()
         self.timer_update.timeout.connect(self.update)
         self.timer_update.start(5)
@@ -66,8 +70,10 @@ class MainWindow(QtWidgets.QWidget):
         self.main_timer.timeout.connect(lambda: self.kill_bunker())
         self.main_timer.timeout.connect(lambda: self.cart.move(Values.NOPE))
         self.main_timer.timeout.connect(lambda: self.win())
-        self.main_timer.timeout.connect(lambda: self.health_bonus.move_bonus())
-        self.main_timer.timeout.connect(lambda: self.bullet_bonus.move_bonus())
+        self.main_timer.timeout.connect(lambda: Enemies.move_bonus
+                                        (self.health_bonus))
+        self.main_timer.timeout.connect(lambda: Enemies.move_bonus
+                                        (self.bullet_bonus))
         self.main_timer.timeout.connect(lambda: self.intersect_bonus_health())
         self.main_timer.timeout.connect(lambda: self.intersect_bonus_bullet())
         self.main_timer.timeout.connect(lambda: self.score.
@@ -163,10 +169,41 @@ class MainWindow(QtWidgets.QWidget):
                 self.bullets.append(bullet)
                 self.cart_fire_timer.start(self.level.interval_cart)
                 self.able_fire = False
+        if key == QtCore.Qt.Key_S and self.saving_count < 3:
+            self.saving.invaders = self.save_things(self.invaders)
+            self.saving.invader_bullets = self.save_things(self.bullets_inv)
+            self.saving.bullets = self.save_things(self.bullets)
+            self.saving.score = self.score
+            self.saving.cart = copy.deepcopy(self.cart)
+            self.saving.bunkers = self.save_things(self.bunkers)
+            self.saving.health_bonus = copy.deepcopy(self.health_bonus)
+            self.saving.bullet_bonus = copy.deepcopy(self.bullet_bonus)
+            self.saving.mystery_ship = copy.deepcopy(self.mystery_ship)
+            self.saving_count += 1
+
+        if (key == QtCore.Qt.Key_V and self.saving_count >= 1 and
+                self.loading_count <= 2):
+            self.cart = copy.deepcopy(self.saving.cart)
+            self.score = copy.deepcopy(self.saving.score)
+            self.invaders = copy.deepcopy(self.load_invaders())
+            self.bullets_inv = copy.deepcopy(self.load_invader_bullets())
+            self.bullets = copy.deepcopy(self.load_bullets())
+            self.bunkers = copy.deepcopy(self.load_bunkers())
+            self.health_bonus = copy.deepcopy(self.saving.health_bonus)
+            self.bullet_bonus = copy.deepcopy(self.saving.bullet_bonus)
+            self.mystery_ship = copy.deepcopy(self.saving.mystery_ship)
+            self.mystery_timer.start()
+            self.main_timer.start()
+            self.cart_fire_timer.start()
+            self.invaders_fire_timer.start()
+            self.loading_count += 1
 
     def win(self):
         if (len(self.invaders) == 0 and
                 self.level_number != len(self.levels) - 1):
+            self.saving = Enemies.Saving()
+            self.saving_count = 0
+            self.loading_count = 0
             self.level_number += 1
             self.level = Levels.levels(self.levels[self.level_number])
             self.bunkers = self.init_bunkers()
@@ -318,7 +355,7 @@ class MainWindow(QtWidgets.QWidget):
                     self.bullets_inv.remove(bullet)
 
     def go_mystery_ship(self):
-        self.mystery_ship = Enemies.MysteryShip(0, 500, 160, 80, self.bullets,
+        self.mystery_ship = Enemies.MysteryShip(0, 50, 160, 80, self.bullets,
                                                 True)
 
     def move_mystery_ship(self):
@@ -381,16 +418,29 @@ class MainWindow(QtWidgets.QWidget):
 
     def init_invaders(self):
         invaders = []
-        medium = self.level.mediumInvadersCount
-        hard = self.level.hardInvadersCount
-        count = self.level.easyInvadersCount + medium + hard
+        easy1 = self.level.invadersEasyFirst
+        easy2 = self.level.invadersEasySecond
+        easy3 = self.level.invadersEasyThird
+        medium1 = self.level.invadersMediumFirst
+        medium2 = self.level.invadersMediumSecond
+        medium3 = self.level.invadersMediumThird
+        hard1 = self.level.invadersHardFirst
+        hard2 = self.level.invadersHardSecond
+        hard3 = self.level.invadersHardThird
+        count1 = easy1 + medium1 + hard1
+        count2 = easy2 + medium2 + hard2
+        count3 = easy3 + medium3 + hard3
+        self.append_invaders(count1, invaders, medium1, hard1, 0)
+        self.append_invaders(count2, invaders, medium2, hard2, 1)
+        self.append_invaders(count3, invaders, medium3, hard3, 2)
+        return invaders
+
+    def append_invaders(self, count, invaders, medium, hard, raw):
         hard_v = 3 if hard > 0 else -1
         mid_v = 2 if medium > 0 else -1
         easy_v = 1 if count - hard - medium > 0 else -1
         for i in range(count):
-            invaders.append(Enemies.Invader(30 + (i % 6) * 150,
-                                            50 + (i // 6 % (count //
-                                                            3 + 1)) * 80,
+            invaders.append(Enemies.Invader(30 + (i % 6) * 150, 50 + 80 * raw,
                                             Values.INVADER_WIDTH,
                                             Values.INVADER_HEIGHT,
                                             self.level.lives
@@ -402,7 +452,6 @@ class MainWindow(QtWidgets.QWidget):
                 medium -= 1
             if medium <= 0:
                 mid_v = -1
-        return invaders
 
     @staticmethod
     def init_bunkers():
@@ -434,6 +483,37 @@ class MainWindow(QtWidgets.QWidget):
                                                                 self.level.
                                                                 bullet_bonus,
                                                                 True)
+
+    @staticmethod
+    def save_things(things):
+        result = []
+        for thing in things:
+            result.append(copy.deepcopy(thing))
+        return result
+
+    def load_invaders(self):
+        result = []
+        for invader in self.saving.invaders:
+            result.append(copy.deepcopy(invader))
+        return result
+
+    def load_invader_bullets(self):
+        result = []
+        for bullet in self.saving.invader_bullets:
+            result.append(copy.deepcopy(bullet))
+        return result
+
+    def load_bullets(self):
+        result = []
+        for bullet in self.saving.bullets:
+            result.append(copy.deepcopy(bullet))
+        return result
+
+    def load_bunkers(self):
+        result = []
+        for bunker in self.saving.bunkers:
+            result.append(copy.deepcopy(bunker))
+        return result
 
 
 if __name__ == '__main__':

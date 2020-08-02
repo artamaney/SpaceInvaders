@@ -13,10 +13,14 @@ damage = 1
 lives = 1
 type = 1
 
-[enemies]
-easyInvadersCount = 6
-mediumInvadersCount= 6
-hardInvadersCount = 6
+[first_raw_enemies]
+easy = 1
+[second_raw_enemies]
+medium = 1
+hard = 1
+easy = 1
+[third_raw_enemies]
+hard = 1
 
 [level]
 weight_cart = 1

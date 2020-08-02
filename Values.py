@@ -1,7 +1,6 @@
 from math import pi
 
-G = 9.8
-ANGLE = 1 / 6 * pi
+G = 8.5
 RATIO = 0.25
 WINDOW_WIDTH = 1080
 WINDOW_HEIGHT = 840

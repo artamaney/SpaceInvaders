@@ -13,16 +13,20 @@ damage = 3
 lives = 1
 type = 1
 
-[enemies]
-easyInvadersCount = 1
-mediumInvadersCount = 1
-hardInvadersCount = 1
+[first_raw_enemies]
+easy = 1
+[second_raw_enemies]
+medium = 1
+hard = 1
+easy = 1
+[third_raw_enemies]
+hard = 1
 
 [level]
 weight_cart = 10
 interval_cart = 2000
 lives_cart = 10
-probability = 50
+probability = 35
 lives_bonus = 2
 bullet_bonus = 3
 interval_mystery_ship = 20000

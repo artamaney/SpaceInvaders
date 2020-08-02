@@ -1,6 +1,6 @@
 # Game "Space Invaders"
 
-Version 1.5
+Version 1.6
 Developer Rogov Artemy (artemiyrogov1@gmail.com)
 
 ## Description
@@ -29,11 +29,15 @@ you will play at first `level2.txt`, after `level1.txt`
 
 ### Controlling
 
-* `Key left`, `Key right` -- To control cart
+* `Key left`, `Key right` - To control cart
 
-* `Space` -- To fire
+* `Space` - To fire
 
-* `P` -- To pause the game
+* `P` - To pause the game
+
+* `S` - To save the game
+
+* `V` - To load the last saving
 
 #### Details of implementation
 
@@ -42,6 +46,7 @@ you will play at first `level2.txt`, after `level1.txt`
 `Values.py` contains all the constants using in this game
 
 `Levels.py` parses information about levels from text files
+
 
 You can make your own levels. You should only build new level`number`.txt using next sample:
 
@@ -60,10 +65,15 @@ You can make your own levels. You should only build new level`number`.txt using 
 		lives = value
 		type = value
 
-		[enemies]
-		easyinvader = count
-		mediuminvader = count
-		hardinvader = count (please don`t make more than summary 27 enemies, also it should be bigger than 0)
+        [first_raw_enemies]
+        easy = count
+        [second_raw_enemies]
+        medium = count
+        hard = count
+        easy = count
+        [third_raw_enemies]
+        hard = count
+        medium = count # if you don`t add information about count of some type of enemie nothing will happend
 
 		[level]
 		weight_cart = value (from 1 to 20, if it is very small, you will be very light, if it is very big, you won`t have opportunity to normally move)
