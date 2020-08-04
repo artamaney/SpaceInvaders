@@ -24,6 +24,7 @@ class MainWindow(QtWidgets.QWidget):
         self.level_number = 0
         self.level = Levels.levels(self.levels[self.level_number])
         self.pause_mode = False
+        self.scoreboard_mode = False
         self.count = 0
         self.addition_power = 0
         self.game_is_over = False
@@ -127,25 +128,28 @@ class MainWindow(QtWidgets.QWidget):
         self.print_health_bonus(painter)
         self.print_bullet_bonus(painter)
         self.print_mystery_ship(painter)
+        self.print_scoreboard(painter)
+
+    def stopTimers(self):
+        if self.pause_mode or self.game_is_over or self.scoreboard_mode:
+            self.main_timer.stop()
+            self.invaders_fire_timer.stop()
+            self.score_timer.stop()
+            self.cart_fire_timer.stop()
+            self.mystery_timer.stop()
+        else:
+            self.main_timer.start()
+            self.invaders_fire_timer.start()
+            self.score_timer.start()
+            self.cart_fire_timer.start()
+            self.mystery_timer.start()
 
     def keyPressEvent(self, event):
         key = event.key()
         if key == QtCore.Qt.Key_P or self.game_is_over:
-            self.pause_mode = not (self.game_is_over or self.pause_mode)
-            if self.pause_mode or self.game_is_over:
-                self.main_timer.stop()
-                self.invaders_fire_timer.stop()
-                self.score_timer.stop()
-                self.cart_fire_timer.stop()
-                self.mystery_timer.stop()
-            else:
-                self.main_timer.start()
-                self.invaders_fire_timer.start()
-                self.score_timer.start()
-                self.cart_fire_timer.start()
-                self.mystery_timer.start()
-
-        if not (self.pause_mode or self.game_is_over):
+            self.pause_mode = not self.pause_mode
+            self.stopTimers()
+        if not (self.pause_mode or self.game_is_over or self.scoreboard_mode):
             if key == QtCore.Qt.Key_Right:
                 self.cart.move(Values.RIGHT)
                 self.cart.direction = Values.RIGHT
@@ -185,10 +189,12 @@ class MainWindow(QtWidgets.QWidget):
                 self.loading_count <= 2):
             self.cart = copy.deepcopy(self.saving.cart)
             self.score = copy.deepcopy(self.saving.score)
-            self.invaders = copy.deepcopy(self.load_invaders())
-            self.bullets_inv = copy.deepcopy(self.load_invader_bullets())
-            self.bullets = copy.deepcopy(self.load_bullets())
-            self.bunkers = copy.deepcopy(self.load_bunkers())
+            self.invaders = copy.deepcopy(self.load_things
+                                          (self.saving.invaders))
+            self.bullets_inv = copy.deepcopy(self.load_things
+                                             (self.saving.invader_bullets))
+            self.bullets = copy.deepcopy(self.load_things(self.saving.bullets))
+            self.bunkers = copy.deepcopy(self.load_things(self.saving.bunkers))
             self.health_bonus = copy.deepcopy(self.saving.health_bonus)
             self.bullet_bonus = copy.deepcopy(self.saving.bullet_bonus)
             self.mystery_ship = copy.deepcopy(self.saving.mystery_ship)
@@ -197,6 +203,10 @@ class MainWindow(QtWidgets.QWidget):
             self.cart_fire_timer.start()
             self.invaders_fire_timer.start()
             self.loading_count += 1
+
+        if key == QtCore.Qt.Key_O:
+            self.scoreboard_mode = not self.scoreboard_mode
+            self.stopTimers()
 
     def win(self):
         if (len(self.invaders) == 0 and
@@ -261,7 +271,7 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_cart, img)
 
     def print_pause(self, painter):
-        if self.pause_mode:
+        if self.pause_mode and not self.scoreboard_mode:
             rect_pause = QtCore.QRect(Values.WINDOW_WIDTH // 2 - 200,
                                       Values.WINDOW_HEIGHT // 2 - 200,
                                       400, 200)
@@ -289,6 +299,13 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_our_lives, Images.line_full)
         painter.drawText(930, 795,
                          f'{self.cart.lives * 100 // self.level.lives_cart}%')
+
+    def print_scoreboard(self, painter):
+        if self.scoreboard_mode:
+            rect_scoreboard = QtCore.QRect(Values.WINDOW_WIDTH // 2 - 300,
+                                           Values.WINDOW_HEIGHT // 2 - 400,
+                                           600, 800)
+            painter.drawImage(rect_scoreboard, Images.SCOREBOARD)
 
     @staticmethod
     def print_bunker(painter, bunker):
@@ -491,28 +508,11 @@ class MainWindow(QtWidgets.QWidget):
             result.append(copy.deepcopy(thing))
         return result
 
-    def load_invaders(self):
+    @staticmethod
+    def load_things(things):
         result = []
-        for invader in self.saving.invaders:
-            result.append(copy.deepcopy(invader))
-        return result
-
-    def load_invader_bullets(self):
-        result = []
-        for bullet in self.saving.invader_bullets:
-            result.append(copy.deepcopy(bullet))
-        return result
-
-    def load_bullets(self):
-        result = []
-        for bullet in self.saving.bullets:
-            result.append(copy.deepcopy(bullet))
-        return result
-
-    def load_bunkers(self):
-        result = []
-        for bunker in self.saving.bunkers:
-            result.append(copy.deepcopy(bunker))
+        for thing in things:
+            result.append(copy.deepcopy(thing))
         return result
 
 
