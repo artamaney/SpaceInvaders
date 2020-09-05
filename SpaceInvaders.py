@@ -9,10 +9,12 @@ import Images
 import Levels
 import argparse
 import copy
+import json
 
 
 def createParser():
     parser = argparse.ArgumentParser()
+    parser.add_argument('name', nargs=1, default='user')
     parser.add_argument('level', nargs='+')
     return parser
 
@@ -20,8 +22,11 @@ def createParser():
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.levels = createParser().parse_args(sys.argv[1:]).level
+        self.parser = createParser()
+        self.levels = self.parser.parse_args(sys.argv[1:]).level
+        self.name = self.parser.parse_args(sys.argv[1:]).name[0]
         self.level_number = 0
+        self.refresh_count = 0
         self.level = Levels.levels(self.levels[self.level_number])
         self.pause_mode = False
         self.scoreboard_mode = False
@@ -56,6 +61,7 @@ class MainWindow(QtWidgets.QWidget):
         self.timer_update.timeout.connect(self.update)
         self.timer_update.start(5)
         self.main_timer = QtCore.QTimer()
+        self.main_timer.timeout.connect(lambda: self.refresh_scoreboard())
         self.main_timer.timeout.connect(lambda: self.cart_fire())
         self.main_timer.timeout.connect(lambda: self.move_invaders())
         self.main_timer.timeout.connect(lambda: self.invader_fire())
@@ -306,6 +312,14 @@ class MainWindow(QtWidgets.QWidget):
                                            Values.WINDOW_HEIGHT // 2 - 400,
                                            600, 800)
             painter.drawImage(rect_scoreboard, Images.SCOREBOARD)
+            painter.setFont(QtGui.QFont('XENOA', 30))
+            with open('scoreboard.json', 'r') as f:
+                board = json.load(f)
+                i = 0
+                for key in board.keys():
+                    painter.drawText(350, 200 + 50 * i,
+                                     f'{key}: {(board[key])}')
+                    i += 1
 
     @staticmethod
     def print_bunker(painter, bunker):
@@ -420,9 +434,6 @@ class MainWindow(QtWidgets.QWidget):
         for invader in self.invaders:
             invader.intersect_bullet(self.bullets, self.invaders)
 
-    def game_over(self):
-        return self.cart.lives <= 0
-
     def kill_bunker(self):
         for bunker in self.bunkers:
             bunker.bullet_intersection(self.bullets_inv, self.bunkers)
@@ -514,6 +525,18 @@ class MainWindow(QtWidgets.QWidget):
         for thing in things:
             result.append(copy.deepcopy(thing))
         return result
+
+    def refresh_scoreboard(self):
+        if ((self.game_is_over or len(self.invaders) == 0 and
+                self.level_number == len(self.levels) - 1) and
+                self.refresh_count == 0):
+            self.stopTimers()
+            with open('scoreboard.json', 'r') as f:
+                data = json.load(f)
+            data[self.name] = self.score.score
+            with open('scoreboard.json', 'w') as f:
+                json.dump(data, f)
+            self.refresh_count += 1
 
 
 if __name__ == '__main__':

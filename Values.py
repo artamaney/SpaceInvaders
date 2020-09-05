@@ -1,6 +1,6 @@
 from math import pi
 
-G = 8.5
+G = 6
 RATIO = 0.25
 WINDOW_WIDTH = 1080
 WINDOW_HEIGHT = 840

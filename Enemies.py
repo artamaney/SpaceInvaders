@@ -94,8 +94,8 @@ class Cart:
                 self.vx = -0.1
             if direction == Values.NOPE:
                 x_middle += self.vx
-            if direction == Values.RIGHT and \
-                    x_middle + self.width <= Values.WINDOW_WIDTH:
+            if (direction == Values.RIGHT and
+                    x_middle + self.width <= Values.WINDOW_WIDTH):
                 x_middle += self.vx
             if direction == Values.LEFT:
                 x_middle -= self.vx
