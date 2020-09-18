@@ -16,8 +16,8 @@ type = 1
 [first_raw_enemies]
 easy = 6
 [second_raw_enemies]
-medium = 4
-hard = 1
+medium = 3
+hard = 2
 easy = 1
 [third_raw_enemies]
 hard = 6

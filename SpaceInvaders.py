@@ -1,15 +1,16 @@
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QIcon
-import sys
 import Enemies
-from random import randint
-import Values
 import Images
 import Levels
+import Values
 import argparse
 import copy
 import json
+import sys
+from random import randint
+
+from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QIcon
 
 
 def createParser():
@@ -534,8 +535,13 @@ class MainWindow(QtWidgets.QWidget):
             with open('scoreboard.json', 'r') as f:
                 data = json.load(f)
             data[self.name] = self.score.score
+            list_data = list(data.items())
+            list_data.sort(key=lambda el: el[1], reverse=True)
+            result = {}
+            for i in list_data:
+                result[i[0]] = i[1]
             with open('scoreboard.json', 'w') as f:
-                json.dump(data, f)
+                json.dump(result, f)
             self.refresh_count += 1
 
 

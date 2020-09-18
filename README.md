@@ -1,6 +1,6 @@
 # Game "Space Invaders"
 
-Version 1.6
+Version 2.0
 Developer Rogov Artemy (artemiyrogov1@gmail.com)
 
 ## Description
@@ -15,17 +15,17 @@ This app is an implementation of the game SPACE INVADERS with acceleration of fr
 
 Main module (GUI and implementation of the game): `SpaceInvaders.py`
 
-Modules: `Enemies.py`, `Values`, `Levels.py`
+Modules: `Enemies.py`, `Values.py`, `Levels.py`, `Images.py`
 
-Tests: `tests.py`
+Tests: `test_Enemies.py`
 
 ## How to play
 for example you have levels: `level1.txt`, `level2.txt`
 using command line you can run the game
 
-`python SpaceInvaders.py level2.txt level1.txt`
+`python SpaceInvaders.py NAME level2.txt level1.txt`
 
-you will play at first `level2.txt`, after `level1.txt`
+you will play at first `level2.txt`, after `level1.txt` and your name in scoreboard will be NAME
 
 ### Controlling
 
@@ -39,6 +39,8 @@ you will play at first `level2.txt`, after `level1.txt`
 
 * `V` - To load the last saving
 
+* `O` - To see a scoreboard during a game (pause_mode activating automatically)
+
 #### Details of implementation
 
 `Enemies.py` contains information about all classes using in this game (invaders, bullets, cart, etc.)
@@ -46,6 +48,8 @@ you will play at first `level2.txt`, after `level1.txt`
 `Values.py` contains all the constants using in this game
 
 `Levels.py` parses information about levels from text files
+
+`Images.py` contains all images ^-^
 
 
 You can make your own levels. You should only build new level`number`.txt using next sample:

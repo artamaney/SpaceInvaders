@@ -45,8 +45,7 @@ class Cart:
     def __init__(self, x, y, width, height, weight, lives):
         if not (0 <= x <= Values.WINDOW_WIDTH and
                 0 <= y <= Values.WINDOW_HEIGHT and
-                10 <= height <= 100 and 10 <= width <= 200
-                and weight > 0):
+                10 <= height <= 100 and 10 <= width <= 200 and weight > 0):
             raise ValueError
         self.lives = lives
         self.x_left = x
