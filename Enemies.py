@@ -1,6 +1,13 @@
 from math import sin, cos, pi
 import Values
 from random import randint
+from enum import Enum
+
+
+class AttackType(Enum):
+    aim = 1
+    aim_and_random = 2
+    random = 3
 
 
 class Invader:
@@ -158,14 +165,14 @@ class InvaderBullet:
         self.type = attack_type
         self.step = 0
         self.invader = invader
-        if attack_type == 1:
+        if attack_type == AttackType.aim:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
-        if attack_type == 2:
+        if attack_type == AttackType.aim_and_random:
             self.step = ((self.y1 + randint(-100, 100) - self.y_top) /
                          (self.x1 + randint(-100, 100) - self.x_left))
             self.step = velocity / self.step
-        if attack_type == 3:
+        if attack_type == AttackType.random:
             self.step = ((randint(600, Values.WINDOW_HEIGHT) - self.y_top) /
                          (randint(0, Values.WINDOW_WIDTH) - self.x_left))
             self.step = velocity / self.step

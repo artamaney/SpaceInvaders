@@ -6,7 +6,7 @@ import argparse
 import copy
 import json
 import sys
-from random import randint
+from random import randint, choice
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QSize
@@ -35,6 +35,7 @@ class MainWindow(QtWidgets.QWidget):
         self.addition_power = 0
         self.game_is_over = False
         self.flag = True
+        self.saved_flag = False
         self.title = "SPACE INVADERS"
         self.BACKGROUND = Images.BACKGROUND
         self.ICON = QIcon('space-invader-icon.png')
@@ -104,6 +105,9 @@ class MainWindow(QtWidgets.QWidget):
         self.mystery_timer = QtCore.QTimer()
         self.mystery_timer.timeout.connect(lambda: self.go_mystery_ship())
         self.mystery_timer.start(self.level.interval_mystery_ship)
+        self.save_timer = QtCore.QTimer()
+        self.save_timer.timeout.connect(lambda: self.has_been_saved())
+        self.save_timer.start(200)
         self.initUI()
 
     def initUI(self):
@@ -115,27 +119,28 @@ class MainWindow(QtWidgets.QWidget):
 
     def paintEvent(self, paintEvent):
         painter = QtGui.QPainter(self)
-        self.print_cart(painter)
+        self.draw_cart(painter)
         for bunker in self.bunkers:
-            self.print_bunker(painter, bunker)
+            self.draw_bunker(painter, bunker)
         for bullet in self.bullets:
-            self.print_our_bullet(painter, bullet)
+            self.draw_our_bullet(painter, bullet)
         for invader in self.invaders:
-            self.print_invaders(painter, invader)
+            self.draw_invaders(painter, invader)
         for bullet in self.bullets_inv:
-            self.print_invader_bullet(painter, bullet)
+            self.draw_invader_bullet(painter, bullet)
         for invader in self.invaders:
-            self.print_lives(painter, invader)
-        self.print_cart_lives(painter)
-        if self.cart.lives <= 0:
+            self.draw_lives(painter, invader)
+        self.draw_cart_lives(painter)
+        if self.cart.lives <= 0 or self.game_is_over:
             self.game_is_over = True
-            self.print_game_over(painter)
-        self.print_score(painter)
-        self.print_pause(painter)
-        self.print_health_bonus(painter)
-        self.print_bullet_bonus(painter)
-        self.print_mystery_ship(painter)
-        self.print_scoreboard(painter)
+            self.draw_game_over(painter)
+        self.draw_score(painter)
+        self.draw_pause(painter)
+        self.draw_health_bonus(painter)
+        self.draw_bullet_bonus(painter)
+        self.draw_mystery_ship(painter)
+        self.draw_scoreboard(painter)
+        self.draw_save(painter)
 
     def stopTimers(self):
         if self.pause_mode or self.game_is_over or self.scoreboard_mode:
@@ -180,28 +185,32 @@ class MainWindow(QtWidgets.QWidget):
                 self.bullets.append(bullet)
                 self.cart_fire_timer.start(self.level.interval_cart)
                 self.able_fire = False
-        if key == QtCore.Qt.Key_S and self.saving_count < 3:
-            self.saving.invaders = self.save_things(self.invaders)
-            self.saving.invader_bullets = self.save_things(self.bullets_inv)
-            self.saving.bullets = self.save_things(self.bullets)
+        if (key == QtCore.Qt.Key_S and self.saving_count < 3 and not
+                (self.pause_mode or self.game_is_over or
+                 self.scoreboard_mode)):
+            self.saving.invaders = copy.deepcopy(self.invaders)
+            self.saving.invader_bullets = copy.deepcopy(self.bullets_inv)
+            self.saving.bullets = copy.deepcopy(self.bullets)
             self.saving.score = self.score
             self.saving.cart = copy.deepcopy(self.cart)
-            self.saving.bunkers = self.save_things(self.bunkers)
+            self.saving.bunkers = copy.deepcopy(self.bunkers)
             self.saving.health_bonus = copy.deepcopy(self.health_bonus)
             self.saving.bullet_bonus = copy.deepcopy(self.bullet_bonus)
             self.saving.mystery_ship = copy.deepcopy(self.mystery_ship)
             self.saving_count += 1
+            self.saved_flag = True
+            self.save_timer.start()
 
         if (key == QtCore.Qt.Key_V and self.saving_count >= 1 and
-                self.loading_count <= 2):
+            self.loading_count <= 2 and not
+                (self.pause_mode or self.game_is_over or
+                 self.scoreboard_mode)):
             self.cart = copy.deepcopy(self.saving.cart)
             self.score = copy.deepcopy(self.saving.score)
-            self.invaders = copy.deepcopy(self.load_things
-                                          (self.saving.invaders))
-            self.bullets_inv = copy.deepcopy(self.load_things
-                                             (self.saving.invader_bullets))
-            self.bullets = copy.deepcopy(self.load_things(self.saving.bullets))
-            self.bunkers = copy.deepcopy(self.load_things(self.saving.bunkers))
+            self.invaders = copy.deepcopy(self.saving.invaders)
+            self.bullets_inv = copy.deepcopy(self.saving.invader_bullets)
+            self.bullets = copy.deepcopy(self.saving.bullets)
+            self.bunkers = copy.deepcopy(self.saving.bunkers)
             self.health_bonus = copy.deepcopy(self.saving.health_bonus)
             self.bullet_bonus = copy.deepcopy(self.saving.bullet_bonus)
             self.mystery_ship = copy.deepcopy(self.saving.mystery_ship)
@@ -233,7 +242,7 @@ class MainWindow(QtWidgets.QWidget):
     def able_to_fire(self):
         self.able_fire = True
 
-    def print_mystery_ship(self, painter):
+    def draw_mystery_ship(self, painter):
         if self.mystery_ship.active:
             rect_ship = QtCore.QRect(self.mystery_ship.x_left,
                                      self.mystery_ship.y_top,
@@ -241,7 +250,7 @@ class MainWindow(QtWidgets.QWidget):
                                      self.mystery_ship.height)
             painter.drawImage(rect_ship, Images.MYSTERY_SHIP)
 
-    def print_bullet_bonus(self, painter):
+    def draw_bullet_bonus(self, painter):
         if self.bullet_bonus.active:
             rect_bullet_bonus = QtCore.QRect(self.bullet_bonus.x_left,
                                              self.bullet_bonus.y_top,
@@ -249,7 +258,7 @@ class MainWindow(QtWidgets.QWidget):
                                              self.bullet_bonus.height)
             painter.drawImage(rect_bullet_bonus, Images.BULLET_BONUS)
 
-    def print_health_bonus(self, painter):
+    def draw_health_bonus(self, painter):
         if self.health_bonus.active:
             rect_health = QtCore.QRect(self.health_bonus.x_left,
                                        self.health_bonus.y_top,
@@ -257,13 +266,13 @@ class MainWindow(QtWidgets.QWidget):
                                        self.health_bonus.height)
             painter.drawImage(rect_health, Images.HEALTH)
 
-    def print_score(self, painter):
+    def draw_score(self, painter):
         score = self.find_score()
         for i in range(5):
             rect_score = QtCore.QRect(1000 - 50 * i, 20, 50, 50)
             painter.drawImage(rect_score, Images.ARR[int(score[i])])
 
-    def print_cart(self, painter):
+    def draw_cart(self, painter):
         rect_cart = QtCore.QRect(self.cart.x_left, self.cart.y_top,
                                  self.cart.width, self.cart.height)
         if (self.cart.x_left + self.cart.width / 2 <=
@@ -277,14 +286,14 @@ class MainWindow(QtWidgets.QWidget):
                 img = Images.CARTRU
         painter.drawImage(rect_cart, img)
 
-    def print_pause(self, painter):
-        if self.pause_mode and not self.scoreboard_mode:
+    def draw_pause(self, painter):
+        if self.pause_mode and not (self.scoreboard_mode or self.game_is_over):
             rect_pause = QtCore.QRect(Values.WINDOW_WIDTH // 2 - 200,
                                       Values.WINDOW_HEIGHT // 2 - 200,
                                       400, 200)
             painter.drawImage(rect_pause, Images.PAUSE)
 
-    def print_lives(self, painter, invader):
+    def draw_lives(self, painter, invader):
         rect_lives = QtCore.QRect(invader.x_left + 5,
                                   invader.y_top + invader.height,
                                   60, 5)
@@ -296,7 +305,7 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_lives, Images.live_line)
         painter.drawImage(rect_our_lives, Images.line_full)
 
-    def print_cart_lives(self, painter):
+    def draw_cart_lives(self, painter):
         painter.setFont(QtGui.QFont('XENOA', 30))
         rect_lives = QtCore.QRect(900, 750, 160, 60)
         rect_lives_width = min(self.cart.lives * 160 // self.level.lives_cart,
@@ -307,41 +316,51 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawText(930, 795,
                          f'{self.cart.lives * 100 // self.level.lives_cart}%')
 
-    def print_scoreboard(self, painter):
+    def draw_scoreboard(self, painter):
         if self.scoreboard_mode:
             rect_scoreboard = QtCore.QRect(Values.WINDOW_WIDTH // 2 - 300,
                                            Values.WINDOW_HEIGHT // 2 - 400,
                                            600, 800)
             painter.drawImage(rect_scoreboard, Images.SCOREBOARD)
             painter.setFont(QtGui.QFont('XENOA', 30))
-            with open('scoreboard.json', 'r') as f:
-                board = json.load(f)
-                i = 0
-                for key in board.keys():
-                    painter.drawText(350, 200 + 50 * i,
-                                     f'{key}: {(board[key])}')
-                    i += 1
+            try:
+                with open('scoreboard.json', 'r') as f:
+                    board = json.load(f)
+                    data = list(board.items())
+                    data.sort(key=lambda el: el[1], reverse=True)
+                    i = 0
+                    for el in data:
+                        painter.drawText(350, 200 + 50 * i, f'{el[0]}: {el[1]}')
+                        i += 1
+            except Exception:
+                print('sorry, a few problems with scoreboard')
+
+    def draw_save(self, painter):
+        if self.saved_flag:
+            rect_save = QtCore.QRect(Values.WINDOW_WIDTH // 4 + 70,
+                                     Values.WINDOW_HEIGHT // 4, 400, 400)
+            painter.drawImage(rect_save, Images.SAVE)
 
     @staticmethod
-    def print_bunker(painter, bunker):
+    def draw_bunker(painter, bunker):
         rect_bunker = QtCore.QRect(bunker.x_left, bunker.y_top,
                                    bunker.width, bunker.height)
         painter.drawImage(rect_bunker, Images.BUNKERS[bunker.lives - 1])
 
     @staticmethod
-    def print_invaders(painter, invader):
+    def draw_invaders(painter, invader):
         rect_invader = QtCore.QRect(invader.x_left, invader.y_top,
                                     invader.width, invader.height)
         painter.drawImage(rect_invader, Images.INVADERS[invader.level - 1])
 
     @staticmethod
-    def print_our_bullet(painter, bullet):
+    def draw_our_bullet(painter, bullet):
         rect_bullet = QtCore.QRect(bullet.x_left, bullet.y_top,
                                    Values.BULLET_RADIUS, Values.BULLET_RADIUS)
         painter.drawImage(rect_bullet, Images.OUR_BULLET)
 
     @staticmethod
-    def print_invader_bullet(painter, bullet):
+    def draw_invader_bullet(painter, bullet):
         rect_bullet = QtCore.QRect(bullet.x_left, bullet.y_top,
                                    Values.BULLET_RADIUS, Values.BULLET_RADIUS)
         level = bullet.invader.level
@@ -349,8 +368,9 @@ class MainWindow(QtWidgets.QWidget):
         painter.drawImage(rect_bullet, img)
 
     @staticmethod
-    def print_game_over(painter):
-        rect_game_over = QtCore.QRect(240, 140, 500, 380)
+    def draw_game_over(painter):
+        rect_game_over = QtCore.QRect(240, 140, Values.WINDOW_WIDTH // 2,
+                                      Values.WINDOW_HEIGHT // 2.5)
         painter.drawImage(rect_game_over, Images.GAME_OVER)
 
     def initBackground(self, background):
@@ -369,14 +389,11 @@ class MainWindow(QtWidgets.QWidget):
     def invader_makes_bullets(self):
         if not (self.game_is_over or len(self.invaders) <= 0 or
                 self.pause_mode):
-            invader = self.invaders[randint(0, len(self.invaders) - 1)]
-            bullet = Enemies.InvaderBullet(invader.x_left, invader.y_top,
-                                           Values.BULLET_RADIUS,
-                                           Values.BULLET_RADIUS,
-                                           self.cart, 1, invader.lives,
-                                           self.level.types
-                                           [invader.level - 1],
-                                           invader)
+            invader = choice(self.invaders)
+            bullet = Enemies.InvaderBullet(
+                invader.x_left, invader.y_top, Values.BULLET_RADIUS,
+                Values.BULLET_RADIUS, self.cart, 1, invader.lives,
+                self.level.types[invader.level - 1], invader)
             self.bullets_inv.append(bullet)
 
     def invader_fire(self):
@@ -407,7 +424,7 @@ class MainWindow(QtWidgets.QWidget):
             step = 0.1
             for invader in self.invaders:
                 if (Values.CAN_MOVE_DOWN and
-                        self.invaders[len(self.invaders) - 1].y_top < 350):
+                        self.invaders[-1].y_top < 350):
                     invader.move_down(step * 40)
                     self.count += 1
                     if self.count % len(self.invaders) == 0:
@@ -469,12 +486,11 @@ class MainWindow(QtWidgets.QWidget):
         mid_v = 2 if medium > 0 else -1
         easy_v = 1 if count - hard - medium > 0 else -1
         for i in range(count):
-            invaders.append(Enemies.Invader(30 + (i % 6) * 150, 50 + 80 * raw,
-                                            Values.INVADER_WIDTH,
-                                            Values.INVADER_HEIGHT,
-                                            self.level.lives
-                                            [max(hard_v, mid_v, easy_v) - 1],
-                                            max(hard_v, mid_v, easy_v)))
+            invaders.append(Enemies.Invader(
+                30 + (i % 6) * 150, 50 + 80 * raw, Values.INVADER_WIDTH,
+                Values.INVADER_HEIGHT,
+                self.level.lives[max(hard_v, mid_v, easy_v) - 1],
+                max(hard_v, mid_v, easy_v)))
             hard -= 1
             if hard <= 0:
                 hard_v = -1
@@ -497,52 +513,31 @@ class MainWindow(QtWidgets.QWidget):
                     random = randint(0, 100)
                     count = self.level.probability // 2
                     if 0 <= random < count:
-                        self.health_bonus = Enemies.HealthBonus(invader.x_left,
-                                                                invader.y_top,
-                                                                40, 40,
-                                                                self.cart,
-                                                                self.level.
-                                                                lives_bonus,
-                                                                True)
+                        self.health_bonus = Enemies.HealthBonus(
+                            invader.x_left, invader.y_top, 40, 40, self.cart,
+                            self.level.lives_bonus, True)
                     if count <= random <= 2 * count:
-                        self.bullet_bonus = Enemies.BulletBonus(invader.x_left,
-                                                                invader.y_top,
-                                                                40, 40,
-                                                                self.cart,
-                                                                self.level.
-                                                                bullet_bonus,
-                                                                True)
-
-    @staticmethod
-    def save_things(things):
-        result = []
-        for thing in things:
-            result.append(copy.deepcopy(thing))
-        return result
-
-    @staticmethod
-    def load_things(things):
-        result = []
-        for thing in things:
-            result.append(copy.deepcopy(thing))
-        return result
+                        self.bullet_bonus = Enemies.BulletBonus(
+                            invader.x_left, invader.y_top, 40, 40, self.cart,
+                            self.level.bullet_bonus, True)
 
     def refresh_scoreboard(self):
         if ((self.game_is_over or len(self.invaders) == 0 and
                 self.level_number == len(self.levels) - 1) and
                 self.refresh_count == 0):
             self.stopTimers()
-            with open('scoreboard.json', 'r') as f:
-                data = json.load(f)
-            data[self.name] = self.score.score
-            list_data = list(data.items())
-            list_data.sort(key=lambda el: el[1], reverse=True)
-            result = {}
-            for i in list_data:
-                result[i[0]] = i[1]
-            with open('scoreboard.json', 'w') as f:
-                json.dump(result, f)
-            self.refresh_count += 1
+            try:
+                with open('scoreboard.json', 'r') as f:
+                    data = json.load(f)
+                data[self.name] = self.score.score
+                with open('scoreboard.json', 'w') as f:
+                    json.dump(dict(data.items()), f)
+                self.refresh_count += 1
+            except Exception:
+                print('sorry, a few problems with scoreboard')
+
+    def has_been_saved(self):
+        self.saved_flag = False
 
 
 if __name__ == '__main__':

@@ -40,6 +40,7 @@ BULLET_BONUS = our_QImage('bullet_bonus.png')
 HEALTH = our_QImage('health.png')
 MYSTERY_SHIP = our_QImage('mystery_ship.png')
 SCOREBOARD = our_QImage('scoreboard.png')
+SAVE = our_QImage('SAVE.png')
 BUNKERS = [BUNKER_3, BUNKER_2, BUNKER_1]
 INVADERS = [INVADER, MEDIUM_INVADER, HARD_INVADER]
 ARR = [ZERO, ONE, TWO, THREE, FOUR, FIVE,
