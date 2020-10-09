@@ -507,19 +507,25 @@ class MainWindow(QtWidgets.QWidget):
         return bunkers
 
     def init_bonuses(self):
+        HEALTH = 'health'
+        probability = 'probability'
         for invader in self.invaders:
             for bullet in self.bullets:
                 if Enemies.rectangles_intersected(bullet, invader):
-                    random = randint(0, 100)
-                    count = self.level.probability // 2
-                    if 0 <= random < count:
-                        self.health_bonus = Enemies.HealthBonus(
-                            invader.x_left, invader.y_top, 40, 40, self.cart,
-                            self.level.lives_bonus, True)
-                    if count <= random <= 2 * count:
-                        self.bullet_bonus = Enemies.BulletBonus(
-                            invader.x_left, invader.y_top, 40, 40, self.cart,
-                            self.level.bullet_bonus, True)
+                    pointer = 0
+                    for bonus in self.level.bonuses:
+                        random = randint(0, 100)
+                        if (pointer <= random <
+                                pointer + int(bonus[probability])):
+                            if bonus['type'] == HEALTH:
+                                self.health_bonus = Enemies.HealthBonus(
+                                    invader.x_left, invader.y_top, 40, 40,
+                                    self.cart, int(bonus[HEALTH]), True)
+                            else:
+                                self.bullet_bonus = Enemies.BulletBonus(
+                                    invader.x_left, invader.y_top, 40, 40,
+                                    self.cart, int(bonus['force']), True)
+                        pointer += int(bonus[probability])
 
     def refresh_scoreboard(self):
         if ((self.game_is_over or len(self.invaders) == 0 and
