@@ -18,6 +18,7 @@ class Invader:
                 lives > 0 and 0 < level <= 3):
             raise ValueError
         self.lives = lives
+        self.full_lives = lives
         self.x_left = x
         self.y_top = y
         self.width = width
@@ -165,14 +166,14 @@ class InvaderBullet:
         self.type = attack_type
         self.step = 0
         self.invader = invader
-        if attack_type == AttackType.aim:
+        if AttackType(self.type) == AttackType.aim:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
-        if attack_type == AttackType.aim_and_random:
+        if AttackType(self.type) == AttackType.aim_and_random:
             self.step = ((self.y1 + randint(-100, 100) - self.y_top) /
                          (self.x1 + randint(-100, 100) - self.x_left))
             self.step = velocity / self.step
-        if attack_type == AttackType.random:
+        if AttackType(self.type) == AttackType.random:
             self.step = ((randint(600, Values.WINDOW_HEIGHT) - self.y_top) /
                          (randint(0, Values.WINDOW_WIDTH) - self.x_left))
             self.step = velocity / self.step
@@ -185,7 +186,8 @@ class InvaderBullet:
 class Bunker:
     def __init__(self, x, y, width, height, lives):
         if not (10 <= width <= 200 and 10 <= height <= 200 and
-                0 < lives <= 5 and 5 <= x <= 1070 and 400 <= y <= 800):
+                0 < lives <= 5 and 5 <= x <= Values.WINDOW_WIDTH - 10 and
+                400 <= y <= Values.WINDOW_HEIGHT - 40):
             raise ValueError
         self.x_left = x
         self.y_top = y

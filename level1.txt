@@ -1,14 +1,14 @@
-[easyinvader]
+[enemy.easy]
 damage = 1
 lives = 1
 type = 3
 
-[mediuminvader]
+[enemy.medium]
 damage = 2
 lives = 2
 type = 2
 
-[hardinvader]
+[enemy.hard]
 damage = 3
 lives = 3
 type = 1
@@ -23,14 +23,9 @@ type = bullet
 probability = 10
 force = 3
 
-[first_row_enemies]
+[enemies]
 easy = 6
-[second_row_enemies]
-medium = 3
-hard = 2
-easy = 1
-[third_row_enemies]
-hard = 6
+hard = 3
 
 [level]
 weight_cart = 15

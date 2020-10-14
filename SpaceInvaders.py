@@ -15,7 +15,7 @@ from PyQt5.QtGui import QIcon
 
 def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('name', nargs=1, default='user')
+    parser.add_argument('--name', help='input your name', default='user')
     parser.add_argument('level', nargs='+')
     return parser
 
@@ -25,7 +25,7 @@ class MainWindow(QtWidgets.QWidget):
         super().__init__()
         self.parser = createParser()
         self.levels = self.parser.parse_args(sys.argv[1:]).level
-        self.name = self.parser.parse_args(sys.argv[1:]).name[0]
+        self.name = self.parser.parse_args(sys.argv[1:]).name
         self.level_number = 0
         self.refresh_count = 0
         self.level = Levels.levels(self.levels[self.level_number])
@@ -174,7 +174,7 @@ class MainWindow(QtWidgets.QWidget):
                         Values.WINDOW_WIDTH / 2):
                     angle = 60
                 velocity = abs(self.cart.vx) * 0.2
-                if self.cart.y_top >= 715:
+                if self.cart.y_top >= Values.WINDOW_HEIGHT - 125:
                     angle = 90
                 bullet = Enemies.CartBullet(self.cart.x_left,
                                             self.cart.y_top - 2,
@@ -186,8 +186,7 @@ class MainWindow(QtWidgets.QWidget):
                 self.cart_fire_timer.start(self.level.interval_cart)
                 self.able_fire = False
         if (key == QtCore.Qt.Key_S and self.saving_count < 3 and not
-                (self.pause_mode or self.game_is_over or
-                 self.scoreboard_mode)):
+           (self.pause_mode or self.game_is_over or self.scoreboard_mode)):
             self.saving.invaders = copy.deepcopy(self.invaders)
             self.saving.invader_bullets = copy.deepcopy(self.bullets_inv)
             self.saving.bullets = copy.deepcopy(self.bullets)
@@ -202,7 +201,7 @@ class MainWindow(QtWidgets.QWidget):
             self.save_timer.start()
 
         if (key == QtCore.Qt.Key_V and self.saving_count >= 1 and
-            self.loading_count <= 2 and not
+                self.loading_count <= 2 and not
                 (self.pause_mode or self.game_is_over or
                  self.scoreboard_mode)):
             self.cart = copy.deepcopy(self.saving.cart)
@@ -269,7 +268,8 @@ class MainWindow(QtWidgets.QWidget):
     def draw_score(self, painter):
         score = self.find_score()
         for i in range(5):
-            rect_score = QtCore.QRect(1000 - 50 * i, 20, 50, 50)
+            rect_score = QtCore.QRect(Values.WINDOW_WIDTH - 80 - 50 * i,
+                                      20, 50, 50)
             painter.drawImage(rect_score, Images.ARR[int(score[i])])
 
     def draw_cart(self, painter):
@@ -297,17 +297,17 @@ class MainWindow(QtWidgets.QWidget):
         rect_lives = QtCore.QRect(invader.x_left + 5,
                                   invader.y_top + invader.height,
                                   60, 5)
-        full_value = self.level.lives[invader.level - 1]
+        full_value = invader.full_lives
         rect_our_lives = QtCore.QRect(invader.x_left + 5,
                                       invader.y_top + invader.height,
-                                      int(invader.lives * 60 / full_value),
-                                      5)
+                                      int(invader.lives * 60 / full_value), 5)
         painter.drawImage(rect_lives, Images.live_line)
         painter.drawImage(rect_our_lives, Images.line_full)
 
     def draw_cart_lives(self, painter):
         painter.setFont(QtGui.QFont('XENOA', 30))
-        rect_lives = QtCore.QRect(900, 750, 160, 60)
+        rect_lives = QtCore.QRect(Values.WINDOW_WIDTH - 180,
+                                  Values.WINDOW_HEIGHT - 90, 160, 60)
         rect_lives_width = min(self.cart.lives * 160 // self.level.lives_cart,
                                160)
         rect_our_lives = QtCore.QRect(900, 750, rect_lives_width, 60)
@@ -383,7 +383,7 @@ class MainWindow(QtWidgets.QWidget):
         if not self.pause_mode:
             for bullet in self.bullets:
                 bullet.move()
-                if bullet.y_top + bullet.height >= 850:
+                if bullet.y_top + bullet.height >= Values.WINDOW_HEIGHT:
                     self.bullets.remove(bullet)
 
     def invader_makes_bullets(self):
@@ -393,14 +393,14 @@ class MainWindow(QtWidgets.QWidget):
             bullet = Enemies.InvaderBullet(
                 invader.x_left, invader.y_top, Values.BULLET_RADIUS,
                 Values.BULLET_RADIUS, self.cart, 1, invader.lives,
-                self.level.types[invader.level - 1], invader)
+                invader.level, invader)
             self.bullets_inv.append(bullet)
 
     def invader_fire(self):
         if not (self.game_is_over or self.pause_mode):
             for bullet in self.bullets_inv:
                 bullet.move()
-                if bullet.y_top + bullet.height >= 800:
+                if bullet.y_top + bullet.height >= Values.WINDOW_HEIGHT - 40:
                     self.bullets_inv.remove(bullet)
 
     def go_mystery_ship(self):
@@ -433,7 +433,8 @@ class MainWindow(QtWidgets.QWidget):
                 else:
                     if self.flag:
                         invader.move_right(step)
-                        self.flag = self.get_right_invader_x() <= 1000
+                        self.flag = (self.get_right_invader_x() <=
+                                     Values.WINDOW_HEIGHT - 80)
                         Values.CAN_MOVE_DOWN = not self.flag
                     else:
                         invader.move_left(step)
@@ -463,47 +464,25 @@ class MainWindow(QtWidgets.QWidget):
         return score_numbers
 
     def init_invaders(self):
+        row = 0
         invaders = []
-        easy1 = self.level.invadersEasyFirst
-        easy2 = self.level.invadersEasySecond
-        easy3 = self.level.invadersEasyThird
-        medium1 = self.level.invadersMediumFirst
-        medium2 = self.level.invadersMediumSecond
-        medium3 = self.level.invadersMediumThird
-        hard1 = self.level.invadersHardFirst
-        hard2 = self.level.invadersHardSecond
-        hard3 = self.level.invadersHardThird
-        count1 = easy1 + medium1 + hard1
-        count2 = easy2 + medium2 + hard2
-        count3 = easy3 + medium3 + hard3
-        self.append_invaders(count1, invaders, medium1, hard1, 0)
-        self.append_invaders(count2, invaders, medium2, hard2, 1)
-        self.append_invaders(count3, invaders, medium3, hard3, 2)
+        for invader in self.level.invaders:
+            row += 1
+            for i in range(int(invader[1])):
+                invaders.append(Enemies.Invader(
+                    30 + (i % 6) * 150, 50 + 80 * row, Values.INVADER_WIDTH,
+                    Values.INVADER_HEIGHT, int(invader[0]['lives']),
+                    int(invader[0]['type'])))
         return invaders
-
-    def append_invaders(self, count, invaders, medium, hard, raw):
-        hard_v = 3 if hard > 0 else -1
-        mid_v = 2 if medium > 0 else -1
-        easy_v = 1 if count - hard - medium > 0 else -1
-        for i in range(count):
-            invaders.append(Enemies.Invader(
-                30 + (i % 6) * 150, 50 + 80 * raw, Values.INVADER_WIDTH,
-                Values.INVADER_HEIGHT,
-                self.level.lives[max(hard_v, mid_v, easy_v) - 1],
-                max(hard_v, mid_v, easy_v)))
-            hard -= 1
-            if hard <= 0:
-                hard_v = -1
-                medium -= 1
-            if medium <= 0:
-                mid_v = -1
 
     @staticmethod
     def init_bunkers():
         bunkers = []
         for i in range(Values.BUNKERS_COUNT):
-            bunkers.append(Enemies.Bunker((100 + (i + 1) * 350) % 900,
-                                          430, 100, 100, 3))
+            bunkers.append(Enemies.Bunker((100 + (i + 1) * 350) %
+                                          Values.WINDOW_WIDTH - 180,
+                                          Values.WINDOW_HEIGHT - 410,
+                                          100, 100, 3))
         return bunkers
 
     def init_bonuses(self):
@@ -529,7 +508,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def refresh_scoreboard(self):
         if ((self.game_is_over or len(self.invaders) == 0 and
-                self.level_number == len(self.levels) - 1) and
+             self.level_number == len(self.levels) - 1) and
                 self.refresh_count == 0):
             self.stopTimers()
             try:
