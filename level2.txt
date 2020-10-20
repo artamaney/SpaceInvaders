@@ -1,34 +1,38 @@
-[easyinvader]
+[enemy.easy]
 damage = 1
 lives = 1
 type = 3
 
-[mediuminvader]
+[enemy.medium]
 damage = 2
 lives = 1
 type = 2
 
-[hardinvader]
-damage = 3
-lives = 1
-type = 1
+[enemy.kek]
+damage = 5
+lives = 5
+type = 3
 
-[first_raw_enemies]
-easy = 1
-[second_raw_enemies]
-medium = 1
-hard = 1
-easy = 1
-[third_raw_enemies]
-hard = 1
+[bonus1]
+type = health
+probability = 10
+health = 2
+
+[bonus2]
+type = bullet
+probability = 10
+force = 3
+
+[enemies]
+easy = 4
+kek = 3
+easy = 2
+kek = 1
 
 [level]
 weight_cart = 10
-interval_cart = 2000
-lives_cart = 10
-probability = 35
-lives_bonus = 2
-bullet_bonus = 3
+interval_cart = 500
+lives_cart = 4
 interval_mystery_ship = 20000
 mystery_ship_score = 500
-fire_score = 50
+fire_score = 100

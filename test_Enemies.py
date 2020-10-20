@@ -2,7 +2,6 @@ import unittest
 import Enemies
 import Values
 import Levels
-import configparser
 
 
 class CartTests(unittest.TestCase):
@@ -279,17 +278,49 @@ class MysteryShipTests(unittest.TestCase):
         self.assertFalse(mystery_ship.active)
 
 
+class SavingTests(unittest.TestCase):
+    def test_init_OK(self):
+        saving = Enemies.Saving()
+        self.assertTrue(len(saving.invaders) == 0)
+        self.assertTrue(saving.score == 0)
+        self.assertTrue(len(saving.bunkers) == 0)
+        self.assertTrue(len(saving.bullets) == 0)
+        self.assertTrue(len(saving.invader_bullets) == 0)
+        self.assertTrue(len(saving.mystery_ship) == 0)
+        self.assertTrue(len(saving.bullet_bonus) == 0)
+        self.assertTrue(len(saving.health_bonus) == 0)
+        self.assertTrue(len(saving.cart) == 0)
+
+
 class LevelTests(unittest.TestCase):
     def test_init_OK(self):
         level = Levels.levels('leveltest.txt')
-        self.assertEqual(level.hard_lives, 1)
-        self.assertEqual(level.bullet_bonus, 1)
-        self.assertEqual(level.probability, 1)
-        self.assertEqual(level.hard_damage, 1)
+        self.assertEqual(level.fire_score, 100)
+        self.assertEqual(level.weight_cart, 0.05)
+        self.assertEqual(level.interval_cart, 100)
+        self.assertEqual(level.lives_cart, 9)
+        self.assertEqual(level.interval_mystery_ship, 20000)
+        self.assertEqual(level.mystery_ship_score, 500)
 
     def test_init_error(self):
-        with self.assertRaises(configparser.NoSectionError):
+        with self.assertRaises(KeyError):
             self.level = Levels.levels('something')
+        with self.assertRaises(KeyError):
+            self.level = Levels.levels('')
+
+    def test_other_fields_are_OK(self):
+        level = Levels.levels('leveltest.txt')
+        self.assertEqual(level.invaders[0][0], 'easy')
+        self.assertEqual(level.invaders[0][1], 6)
+        self.assertEqual(level.invaders[1][0], 'kek')
+        self.assertEqual(level.invaders[1][1], 6)
+        self.assertEqual(level.invaders[2][0], 'medium')
+        self.assertEqual(level.invaders[2][1], 6)
+        self.assertEqual(level.invaders[3][0], 'kek')
+        self.assertEqual(level.invaders[3][1], 6)
+        self.assertEqual(level.bonuses['bonus1']['type'][0], 'health')
+        self.assertEqual(level.bonuses['bonus1']['probability'][0], '10')
+        self.assertEqual(level.bonuses['bonus1']['health'][0], '2')
 
 
 if __name__ == '__main__':

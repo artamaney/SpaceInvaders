@@ -24,11 +24,12 @@ probability = 10
 force = 3
 
 [enemies]
+easy = 4
 easy = 6
 hard = 3
 
 [level]
-weight_cart = 15
+weight_cart = 10
 interval_cart = 1000
 lives_cart = 5
 interval_mystery_ship = 20000

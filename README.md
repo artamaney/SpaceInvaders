@@ -1,6 +1,6 @@
 # Game "Space Invaders"
 
-Version 2.0
+Version 2.1
 Developer Rogov Artemy (artemiyrogov1@gmail.com)
 
 ## Description
@@ -23,9 +23,10 @@ Tests: `test_Enemies.py`
 for example you have levels: `level1.txt`, `level2.txt`
 using command line you can run the game
 
-`python SpaceInvaders.py NAME level2.txt level1.txt`
+`python SpaceInvaders.py --name YOURNAME level2.txt level1.txt`
 
-you will play at first `level2.txt`, after `level1.txt` and your name in scoreboard will be NAME
+
+you will play at first `level2.txt`, after `level1.txt` and your name in scoreboard will be YOURNAME. If you don`t use --name the name in scoreboard will be user
 
 ### Controlling
 
@@ -52,39 +53,33 @@ you will play at first `level2.txt`, after `level1.txt` and your name in scorebo
 `Images.py` contains all images ^-^
 
 
-You can make your own levels. You should only build new level`number`.txt using next sample:
+You can make your own levels. You should only build new level`name`.txt using next sample:
 
-		[easyinvader]
+		[enemy.name]
 		damage = value (from 0 to infinity :) )
 		lives = value (from 0 to infinity :) )
 		type = value (from 1 to 3; 1 - aim on cart, 2 - aim near cart, 3 - random aim)
 
-		[mediuminvader]
+		[enemy.name1]
 		damage = value
 		lives = value
 		type = value
 
-		[hardinvader]
+		[enemy.name2]
 		damage = value
 		lives = value
 		type = value
-
-        [first_raw_enemies]
-        easy = count
-        [second_raw_enemies]
-        medium = count
-        hard = count
-        easy = count
-        [third_raw_enemies]
-        hard = count
-        medium = count # if you don`t add information about count of some type of enemie nothing will happend
+		
+		[bonus1]
+		type = value (bullet or health)
+		probability = value (0 - 100)
+		force = value (0-5) - only if type is bullet
+		health = value (0-5) - only if type is health
 
 		[level]
-		weight_cart = value (from 1 to 20, if it is very small, you will be very light, if it is very big, you won`t have opportunity to normally move)
-		angle_cart = value (from 30 to 150)
-		interval_cart = value (in ms, value=1000 - interval is 1 second)
-		lives_cart = value (from 1 to infinity :) )
-		probability = value (in percents from 0 to 100, chance of dropping bonus after fire invader)
-            lives_bonus = value (count of lives bonus will give you)
-            bullet_bonus = value (count of additional power for next one bullet)
-            interval_mystery_ship = value (in ms, value=1000 - interval is 1 second)
+		weight_cart = value (from 5 to 15)
+            interval_cart = value (from 1000 to 10000)
+            lives_cart = value (from 1 to 10)
+            interval_mystery_ship = value (from 5000 to 500000)
+            mystery_ship_score = value (from 0 to 5000)
+            fire_score = value (from 0 to 250)

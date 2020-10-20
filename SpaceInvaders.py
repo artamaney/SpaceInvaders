@@ -273,15 +273,18 @@ class MainWindow(QtWidgets.QWidget):
             painter.drawImage(rect_score, Images.ARR[int(score[i])])
 
     def draw_cart(self, painter):
-        rect_cart = QtCore.QRect(self.cart.x_left, self.cart.y_top,
-                                 self.cart.width, self.cart.height)
         if (self.cart.x_left + self.cart.width / 2 <=
                 Values.WINDOW_WIDTH / 2 - 3):
             img = Images.CARTRD
+            rect_cart = QtCore.QRect(self.cart.x_left, self.cart.y_top,
+                                     self.cart.width, self.cart.height)
             if self.cart.direction == Values.LEFT:
                 img = Images.CARTLU
         else:
             img = Images.CARTLD
+            rect_cart = QtCore.QRect(self.cart.x_left, min(
+                self.cart.y_top, Values.WINDOW_HEIGHT - 125),
+                                     self.cart.width, self.cart.height)
             if self.cart.direction == Values.RIGHT:
                 img = Images.CARTRU
         painter.drawImage(rect_cart, img)
@@ -434,7 +437,7 @@ class MainWindow(QtWidgets.QWidget):
                     if self.flag:
                         invader.move_right(step)
                         self.flag = (self.get_right_invader_x() <=
-                                     Values.WINDOW_HEIGHT - 80)
+                                     Values.WINDOW_WIDTH - 80)
                         Values.CAN_MOVE_DOWN = not self.flag
                     else:
                         invader.move_left(step)
@@ -467,12 +470,13 @@ class MainWindow(QtWidgets.QWidget):
         row = 0
         invaders = []
         for invader in self.level.invaders:
-            row += 1
             for i in range(int(invader[1])):
                 invaders.append(Enemies.Invader(
                     30 + (i % 6) * 150, 50 + 80 * row, Values.INVADER_WIDTH,
-                    Values.INVADER_HEIGHT, int(invader[0]['lives']),
-                    int(invader[0]['type'])))
+                    Values.INVADER_HEIGHT,
+                    int(self.level.enemies[f'enemy.{invader[0]}']['lives'][0]),
+                    int(self.level.enemies[f'enemy.{invader[0]}']['type'][0])))
+            row += 1
         return invaders
 
     @staticmethod
@@ -480,7 +484,7 @@ class MainWindow(QtWidgets.QWidget):
         bunkers = []
         for i in range(Values.BUNKERS_COUNT):
             bunkers.append(Enemies.Bunker((100 + (i + 1) * 350) %
-                                          Values.WINDOW_WIDTH - 180,
+                                          (Values.WINDOW_WIDTH - 180),
                                           Values.WINDOW_HEIGHT - 410,
                                           100, 100, 3))
         return bunkers
@@ -492,19 +496,22 @@ class MainWindow(QtWidgets.QWidget):
             for bullet in self.bullets:
                 if Enemies.rectangles_intersected(bullet, invader):
                     pointer = 0
-                    for bonus in self.level.bonuses:
+                    bonuses = self.level.bonuses
+                    for bonus in bonuses:
                         random = randint(0, 100)
                         if (pointer <= random <
-                                pointer + int(bonus[probability])):
-                            if bonus['type'] == HEALTH:
+                                pointer + int(bonuses[bonus][probability][0])):
+                            if bonuses[bonus]['type'][0] == HEALTH:
                                 self.health_bonus = Enemies.HealthBonus(
                                     invader.x_left, invader.y_top, 40, 40,
-                                    self.cart, int(bonus[HEALTH]), True)
+                                    self.cart, int(bonuses[bonus][HEALTH][0]),
+                                    True)
                             else:
                                 self.bullet_bonus = Enemies.BulletBonus(
                                     invader.x_left, invader.y_top, 40, 40,
-                                    self.cart, int(bonus['force']), True)
-                        pointer += int(bonus[probability])
+                                    self.cart, int(bonuses[bonus]['force'][0]),
+                                    True)
+                        pointer += int(bonuses[bonus][probability][0])
 
     def refresh_scoreboard(self):
         if ((self.game_is_over or len(self.invaders) == 0 and
@@ -519,7 +526,7 @@ class MainWindow(QtWidgets.QWidget):
                     json.dump(dict(data.items()), f)
                 self.refresh_count += 1
             except Exception:
-                print('sorry, a few problems with scoreboard')
+                print('sorry, a few problems with scoreboard ^-^')
 
     def has_been_saved(self):
         self.saved_flag = False
