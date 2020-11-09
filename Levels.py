@@ -12,7 +12,7 @@ def search_counts(config, option, name):
         return 0
 
 
-class levels:
+class Levels:
     def __init__(self, level):
         self.level = level
         config = configparser.ConfigParser(dict_type=my_dict, strict=False)
@@ -65,7 +65,7 @@ class my_dict:
     def __iter__(self):
         return iter(self.keys())
 
-    def __get__(self, key, default=None):
+    def get(self, key, default=None):
         for i in range(len(self.my_values)):
             if self.my_values[i][0] == key:
                 return self.my_values[i][1]

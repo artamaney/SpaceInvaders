@@ -5,9 +5,9 @@ from enum import Enum
 
 
 class AttackType(Enum):
-    aim = 1
-    aim_and_random = 2
-    random = 3
+    AIM = 1
+    AIM_AND_RANDOM = 2
+    RANDOM = 3
 
 
 class Invader:
@@ -166,14 +166,14 @@ class InvaderBullet:
         self.type = attack_type
         self.step = 0
         self.invader = invader
-        if AttackType(self.type) == AttackType.aim:
+        if AttackType(self.type) == AttackType.AIM:
             self.step = (self.y1 - self.y_top) / (self.x1 - self.x_left)
             self.step = velocity / self.step
-        if AttackType(self.type) == AttackType.aim_and_random:
+        if AttackType(self.type) == AttackType.AIM_AND_RANDOM:
             self.step = ((self.y1 + randint(-100, 100) - self.y_top) /
                          (self.x1 + randint(-100, 100) - self.x_left))
             self.step = velocity / self.step
-        if AttackType(self.type) == AttackType.random:
+        if AttackType(self.type) == AttackType.RANDOM:
             self.step = ((randint(600, Values.WINDOW_HEIGHT) - self.y_top) /
                          (randint(0, Values.WINDOW_WIDTH) - self.x_left))
             self.step = velocity / self.step

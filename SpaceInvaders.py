@@ -11,9 +11,10 @@ from random import randint, choice
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox
 
 
-def createParser():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', help='input your name', default='user')
     parser.add_argument('level', nargs='+')
@@ -23,12 +24,12 @@ def createParser():
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.parser = createParser()
+        self.parser = parse_args()
         self.levels = self.parser.parse_args(sys.argv[1:]).level
         self.name = self.parser.parse_args(sys.argv[1:]).name
         self.level_number = 0
         self.refresh_count = 0
-        self.level = Levels.levels(self.levels[self.level_number])
+        self.level = Levels.Levels(self.levels[self.level_number])
         self.pause_mode = False
         self.scoreboard_mode = False
         self.count = 0
@@ -37,8 +38,6 @@ class MainWindow(QtWidgets.QWidget):
         self.flag = True
         self.saved_flag = False
         self.title = "SPACE INVADERS"
-        self.BACKGROUND = Images.BACKGROUND
-        self.ICON = QIcon('space-invader-icon.png')
         self.width = Values.WINDOW_WIDTH
         self.height = Values.WINDOW_HEIGHT
         self.invaders = self.init_invaders()
@@ -58,7 +57,9 @@ class MainWindow(QtWidgets.QWidget):
                                    self.level.fire_score)
         self.saving = Enemies.Saving()
         self.saving_count = 0
+        self.saving_on_level = 0
         self.loading_count = 0
+        self.loading_on_level = 0
         self.timer_update = QtCore.QTimer()
         self.timer_update.timeout.connect(self.update)
         self.timer_update.start(5)
@@ -111,8 +112,8 @@ class MainWindow(QtWidgets.QWidget):
         self.initUI()
 
     def initUI(self):
-        self.initBackground(self.BACKGROUND)
-        self.setWindowIcon(self.ICON)
+        self.initBackground(Images.BACKGROUND)
+        self.setWindowIcon(QIcon('space-invader-icon.png'))
         self.setWindowTitle(self.title)
         self.setFixedSize(self.width, self.height)
         self.show()
@@ -185,8 +186,10 @@ class MainWindow(QtWidgets.QWidget):
                 self.bullets.append(bullet)
                 self.cart_fire_timer.start(self.level.interval_cart)
                 self.able_fire = False
-        if (key == QtCore.Qt.Key_S and self.saving_count < 3 and not
-           (self.pause_mode or self.game_is_over or self.scoreboard_mode)):
+        if (key == QtCore.Qt.Key_S and self.saving_count < 3 and
+            self.saving_on_level == 0 and not (self.pause_mode or
+                                               self.game_is_over or
+                                               self.scoreboard_mode)):
             self.saving.invaders = copy.deepcopy(self.invaders)
             self.saving.invader_bullets = copy.deepcopy(self.bullets_inv)
             self.saving.bullets = copy.deepcopy(self.bullets)
@@ -197,11 +200,12 @@ class MainWindow(QtWidgets.QWidget):
             self.saving.bullet_bonus = copy.deepcopy(self.bullet_bonus)
             self.saving.mystery_ship = copy.deepcopy(self.mystery_ship)
             self.saving_count += 1
+            self.saving_on_level += 1
             self.saved_flag = True
             self.save_timer.start()
 
-        if (key == QtCore.Qt.Key_V and self.saving_count >= 1 and
-                self.loading_count <= 2 and not
+        if (key == QtCore.Qt.Key_V and self.saving_on_level >= 1 and
+                self.loading_count <= 2 and self.loading_on_level == 0 and not
                 (self.pause_mode or self.game_is_over or
                  self.scoreboard_mode)):
             self.cart = copy.deepcopy(self.saving.cart)
@@ -218,6 +222,7 @@ class MainWindow(QtWidgets.QWidget):
             self.cart_fire_timer.start()
             self.invaders_fire_timer.start()
             self.loading_count += 1
+            self.loading_on_level += 1
 
         if key == QtCore.Qt.Key_O:
             self.scoreboard_mode = not self.scoreboard_mode
@@ -227,10 +232,10 @@ class MainWindow(QtWidgets.QWidget):
         if (len(self.invaders) == 0 and
                 self.level_number != len(self.levels) - 1):
             self.saving = Enemies.Saving()
-            self.saving_count = 0
-            self.loading_count = 0
+            self.saving_on_level = 0
+            self.loading_on_level = 0
             self.level_number += 1
-            self.level = Levels.levels(self.levels[self.level_number])
+            self.level = Levels.Levels(self.levels[self.level_number])
             self.bunkers = self.init_bunkers()
             self.invaders = self.init_invaders()
             self.cart = Enemies.Cart(470, 530, Values.CART_WIDTH,
@@ -331,12 +336,12 @@ class MainWindow(QtWidgets.QWidget):
                     board = json.load(f)
                     data = list(board.items())
                     data.sort(key=lambda el: el[1], reverse=True)
-                    i = 0
-                    for el in data:
-                        painter.drawText(350, 200 + 50 * i, f'{el[0]}: {el[1]}')
+                    for i, el in enumerate(data):
+                        painter.drawText(350, 200 + 50 * i,
+                                         f'{el[0]}: {el[1]}')
                         i += 1
-            except Exception:
-                print('sorry, a few problems with scoreboard')
+            except Exception as e:
+                messageBox = MessageBox(str(e), self)
 
     def draw_save(self, painter):
         if self.saved_flag:
@@ -467,9 +472,8 @@ class MainWindow(QtWidgets.QWidget):
         return score_numbers
 
     def init_invaders(self):
-        row = 0
         invaders = []
-        for invader in self.level.invaders:
+        for row, invader in enumerate(self.level.invaders):
             for i in range(int(invader[1])):
                 invaders.append(Enemies.Invader(
                     30 + (i % 6) * 150, 50 + 80 * row, Values.INVADER_WIDTH,
@@ -491,7 +495,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def init_bonuses(self):
         HEALTH = 'health'
-        probability = 'probability'
+        PROBABILITY = 'probability'
         for invader in self.invaders:
             for bullet in self.bullets:
                 if Enemies.rectangles_intersected(bullet, invader):
@@ -500,7 +504,7 @@ class MainWindow(QtWidgets.QWidget):
                     for bonus in bonuses:
                         random = randint(0, 100)
                         if (pointer <= random <
-                                pointer + int(bonuses[bonus][probability][0])):
+                                pointer + int(bonuses[bonus][PROBABILITY][0])):
                             if bonuses[bonus]['type'][0] == HEALTH:
                                 self.health_bonus = Enemies.HealthBonus(
                                     invader.x_left, invader.y_top, 40, 40,
@@ -511,7 +515,7 @@ class MainWindow(QtWidgets.QWidget):
                                     invader.x_left, invader.y_top, 40, 40,
                                     self.cart, int(bonuses[bonus]['force'][0]),
                                     True)
-                        pointer += int(bonuses[bonus][probability][0])
+                        pointer += int(bonuses[bonus][PROBABILITY][0])
 
     def refresh_scoreboard(self):
         if ((self.game_is_over or len(self.invaders) == 0 and
@@ -525,11 +529,33 @@ class MainWindow(QtWidgets.QWidget):
                 with open('scoreboard.json', 'w') as f:
                     json.dump(dict(data.items()), f)
                 self.refresh_count += 1
-            except Exception:
-                print('sorry, a few problems with scoreboard ^-^')
+            except Exception as e:
+                messageBox = MessageBox(str(e), self)
 
     def has_been_saved(self):
         self.saved_flag = False
+
+
+class MessageBox(QtWidgets.QWidget):
+    def __init__(self, message, app):
+        super().__init__()
+        self.title = 'Error'
+        self.top = Values.WINDOW_HEIGHT // 2
+        self.width = 320
+        self.height = 200
+        self.left = Values.WINDOW_WIDTH // 2 + self.width // 1.5
+        self.app_who_called_mb = app
+        self.initUI(message)
+
+    def initUI(self, message):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        buttonReply = QMessageBox.question(self, "Error",
+                                           message,
+                                           QMessageBox.Ok)
+        if buttonReply == QMessageBox.Ok:
+            sys.exit(self.app_who_called_mb)
+        self.show()
 
 
 if __name__ == '__main__':

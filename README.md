@@ -1,6 +1,6 @@
 # Game "Space Invaders"
 
-Version 2.1
+Version 2.2
 Developer Rogov Artemy (artemiyrogov1@gmail.com)
 
 ## Description

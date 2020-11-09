@@ -294,7 +294,7 @@ class SavingTests(unittest.TestCase):
 
 class LevelTests(unittest.TestCase):
     def test_init_OK(self):
-        level = Levels.levels('leveltest.txt')
+        level = Levels.Levels('leveltest.txt')
         self.assertEqual(level.fire_score, 100)
         self.assertEqual(level.weight_cart, 0.05)
         self.assertEqual(level.interval_cart, 100)
@@ -304,12 +304,12 @@ class LevelTests(unittest.TestCase):
 
     def test_init_error(self):
         with self.assertRaises(KeyError):
-            self.level = Levels.levels('something')
+            self.level = Levels.Levels('something')
         with self.assertRaises(KeyError):
-            self.level = Levels.levels('')
+            self.level = Levels.Levels('')
 
     def test_other_fields_are_OK(self):
-        level = Levels.levels('leveltest.txt')
+        level = Levels.Levels('leveltest.txt')
         self.assertEqual(level.invaders[0][0], 'easy')
         self.assertEqual(level.invaders[0][1], 6)
         self.assertEqual(level.invaders[1][0], 'kek')
